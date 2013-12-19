@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+
+
+<strings>
+     <string id="30010">XBMC Domoticz</string>
+    <string id="30011">General</string>
+    
+    <string id="30020">Login</string>
+    <string id="30024">Domoticz URL</string>
+    <string id="30029">Password</string>
+    
+    <string id="30040">Eteint</string>
+    <string id="30041">Allumé</string>
+    <string id="30042">Ouvert</string>
+    <string id="30043">Fermé</string>
+    <string id="30044">Panique</string>
+    <string id="30045">Normal</string>
+</strings>
