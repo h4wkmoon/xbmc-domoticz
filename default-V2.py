@@ -183,6 +183,6 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
  
 
 
-w = DomoticzWindow("speedfaninfo-main.xml", __addonpath__, "Default")
+w = DomoticzWindow("domoticz.xml", __addonpath__, "Default")
 w.doModal()
 del w
