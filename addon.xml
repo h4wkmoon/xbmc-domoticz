@@ -14,7 +14,7 @@
     <description lang="fr">Ce plugin permet de connaitre l'état des équipements domotiques configuré dans votre installation Domoticz, et pour ceux qui le permettent de changer leur statut.</description>
     <forum>TODO</forum>
     <source>TODO</source>
-    <license>TODO</license>
+    <license>GPL v2</license>
     <platform>all</platform>
     <language></language>
   </extension>
