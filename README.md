@@ -13,7 +13,7 @@ What works :
 
 TODO : 
 * Internalization
-* 
+* Impriove (add?;) error management
 
 Credits :
 * SpeedFan Information ADDON, XBMC Backup and their creators.
