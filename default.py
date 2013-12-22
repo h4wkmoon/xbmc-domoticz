@@ -21,9 +21,9 @@ __rooturl__=__addon__.getSetting('url')
 
 while __rooturl__=='': 
 	__addon__.openSettings()
-	user=__addon__.getSetting('login')
-	password=__addon__.getSetting('password')
-	rooturl=__addon__.getSetting('url')
+	__user__=__addon__.getSetting('login')
+	__password__=__addon__.getSetting('password')
+	__rooturl__=__addon__.getSetting('url')
 
 
 
