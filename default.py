@@ -36,7 +36,7 @@ def log( text, severity=xbmc.LOGNOTICE ):
 
 
 # Maange authentication
-if __login__=='': 		# Authentication optional
+if __user__!='': 		# Authentication optional
 	passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
 	passman.add_password(None, __rooturl__, __user__, __password__)
 	authhandler = urllib2.HTTPBasicAuthHandler(passman)
