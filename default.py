@@ -133,11 +133,11 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 			log("Adding"+myitem[u'Name'],xbmc.LOGNOTICE)
 
 			if myitem[u'TypeImg'] == "lightbulb" or  myitem[u'TypeImg'] == "blinds" or myitem[u'TypeImg'] == "contact" or myitem[u'TypeImg'] == 'smoke':
-				mytype=myitem[u'TypeImg']+myitem[u'Status']
+				mytype=myitem[u'TypeImg']+"-"+myitem[u'Status'].lower()+".png"
 			elif myitem[u'TypeImg'] == "temperature":
-				mytype=myitem[u'TypeImg']
+				mytype=myitem[u'TypeImg']+".png"
 			else:
-				mytype='home'
+				mytype='home.png'
 			if myitem[u'Data'].lower() in __labels__:
 				myitem[u'Data']=__localize__(__labels__[myitem[u'Data'].lower()])
               
@@ -159,8 +159,9 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 				item.setProperty('data',myitem[u'Status'])
 
 			item.setProperty(mytype.lower(),'true')
-
+			item.setIconImage(mytype)
 			self.getControl(120).addItem(item)
+			
 
 	def getData(self):
 		xbmc.executebuiltin( "ActivateWindow(busydialog)" )

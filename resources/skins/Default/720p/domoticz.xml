@@ -18,6 +18,7 @@
 				<width>1090</width>
 				<height>700</height>
 				<texture border="40">speedfan-panel.png</texture>
+				
 			</control>
 			<control type="image">
 				<description>Window Icon</description>
@@ -69,14 +70,6 @@
 					<control type="image">
 						<posx>0</posx>
 						<posy>0</posy>
-						<width>38</width>
-						<height>38</height>
-						<texture border="0">lightbulb-off.png</texture>
-						<visible>ListItem.Property(lightbulboff)</visible>
-					</control>
-					<control type="image">
-						<posx>0</posx>
-						<posy>0</posy>
 						<width>1040</width>
 						<height>38</height>
 						<texture border="10">speedfan-list-nofocus.png</texture>
@@ -87,72 +80,7 @@
 						<posy>0</posy>
 						<width>38</width>
 						<height>38</height>
-						<texture border="0">temperature.png</texture>
-						<visible>ListItem.Property(temperature)</visible>
-					</control>
-					<control type="image">
-						<posx>0</posx>
-						<posy>0</posy>
-						<width>38</width>
-						<height>38</height>
-						<texture border="0">lightbulb-on.png</texture>
-						<visible>ListItem.Property(lightbulbon)</visible>
-					</control>	
-					<control type="image">
-						<posx>0</posx>
-						<posy>0</posy>
-						<width>38</width>
-						<height>38</height>
-						<texture border="0">temperature.png</texture>
-						<visible>ListItem.Property(temperature)</visible>
-					</control>
-					<control type="image">
-						<posx>0</posx>
-						<posy>0</posy>
-						<width>38</width>
-						<height>38</height>
-						<texture border="0">blinds-closed.png</texture>
-						<visible>ListItem.Property(blindsclosed)</visible>
-					</control>
-					<control type="image">
-						<posx>0</posx>
-						<posy>0</posy>
-						<width>38</width>
-						<height>38</height>
-						<texture border="0">blinds-open.png</texture>
-						<visible>ListItem.Property(blindsopen)</visible>
-					</control>	
-					<control type="image">
-						<posx>0</posx>
-						<posy>0</posy>
-						<width>38</width>
-						<height>38</height>
-						<texture border="0">contact-open.png</texture>
-						<visible>ListItem.Property(contactopen)</visible>
-					</control>
-					<control type="image">
-						<posx>0</posx>
-						<posy>0</posy>
-						<width>38</width>
-						<height>38</height>
-						<texture border="0">contact-closed.png</texture>
-						<visible>ListItem.Property(contactclosed)</visible>
-					</control>
-					<control type="image">
-						<posx>0</posx>
-						<posy>0</posy>
-						<width>38</width>
-						<height>38</height>
-						<texture border="0">smoke-normal.png</texture>
-						<visible>ListItem.Property(smokenormal)</visible>
-					</control>
-					<control type="image">
-						<posx>0</posx>
-						<posy>0</posy>
-						<width>38</width>
-						<height>38</height>
-						<texture border="0">smoke-panic.png</texture>
-						<visible>ListItem.Property(smokepanic)</visible>
+						<info>ListItem.Icon</info>
 					</control>
 					<control type="image">
 						<posx>0</posx>
@@ -165,7 +93,7 @@
 					<control type="label">
 						<posx>10</posx>
 						<posy>-3</posy>
-						<width>1000</width>
+						<width>2000</width>
 						<height>38</height>
 						<font>font18</font>
 						<align>left</align>
@@ -177,12 +105,12 @@
 						<visible>ListItem.Property(istitle)</visible>
 					</control>
 					<control type="label">
-						<posx>250</posx>
+						<posx>50</posx>
 						<posy>0</posy>
-						<width>2000</width>
+						<width>300</width>
 						<height>38</height>
 						<font>font18</font>
-						<align>right</align>
+						<align>left</align>
 						<aligny>center</aligny>
 						<textcolor>white</textcolor>
 						<selectedcolor>green</selectedcolor>
@@ -190,6 +118,7 @@
 						<info>ListItem.Label</info>
 						<visible>!ListItem.Property(istitle)</visible>
 					</control>
+<!--
 					<control type="label">
 						<posx>220</posx>
 						<posy>0</posy>
@@ -203,6 +132,7 @@
 						<info>ListItem.Property(value)</info>
 						<visible>!ListItem.Property(istitle)</visible>
 					</control>
+-->
 					<control type="label">
 						<posx>1000</posx>
 						<posy>0</posy>
@@ -217,6 +147,7 @@
 						<info>ListItem.Label2</info>
 						<visible>!ListItem.Property(istitle)</visible>
 					</control>
+<!--
 					<control type="label">
 						<posx>650</posx>
 						<posy>0</posy>
@@ -230,6 +161,7 @@
 						<info>ListItem.Property(value2)</info>
 						<visible>!ListItem.Property(istitle)</visible>
 					</control>
+-->
 				</itemlayout>
 				<focusedlayout height="38">
 					<control type="image">
@@ -237,88 +169,7 @@
 						<posy>0</posy>
 						<width>38</width>
 						<height>38</height>
-						<texture border="0">lightbulb-off.png</texture>
-						<visible>ListItem.Property(lightbulboff)</visible>
-					</control>
-					<control type="image">
-						<posx>0</posx>
-						<posy>0</posy>
-						<width>38</width>
-						<height>38</height>
-						<texture border="0">temperature.png</texture>
-						<visible>ListItem.Property(temperature)</visible>
-					</control>
-					<control type="image">
-						<posx>0</posx>
-						<posy>0</posy>
-						<width>38</width>
-						<height>38</height>
-						<texture border="0">lightbulb-on.png</texture>
-						<visible>ListItem.Property(lightbulbon)</visible>
-					</control>	
-					<control type="image">
-						<posx>0</posx>
-						<posy>0</posy>
-						<width>38</width>
-						<height>38</height>
-						<texture border="0">temperature.png</texture>
-						<visible>ListItem.Property(temperature)</visible>
-					</control>
-					<control type="image">
-						<posx>0</posx>
-						<posy>0</posy>
-						<width>38</width>
-						<height>38</height>
-						<texture border="0">blinds-closed.png</texture>
-						<visible>ListItem.Property(blindsclosed)</visible>
-					</control>
-					<control type="image">
-						<posx>0</posx>
-						<posy>0</posy>
-						<width>38</width>
-						<height>38</height>
-						<texture border="0">blinds-open.png</texture>
-						<visible>ListItem.Property(blindsopen)</visible>
-					</control>	
-					<control type="image">
-						<posx>0</posx>
-						<posy>0</posy>
-						<width>38</width>
-						<height>38</height>
-						<texture border="0">contact-open.png</texture>
-						<visible>ListItem.Property(contactopen)</visible>
-					</control>	
-					<control type="image">
-						<posx>0</posx>
-						<posy>0</posy>
-						<width>38</width>
-						<height>38</height>
-						<texture border="0">contact-closed.png</texture>
-						<visible>ListItem.Property(contactclosed)</visible>
-					</control>
-					<control type="image">
-						<posx>0</posx>
-						<posy>0</posy>
-						<width>38</width>
-						<height>38</height>
-						<texture border="0">smoke-normal.png</texture>
-						<visible>ListItem.Property(smokenormal)</visible>
-					</control>
-					<control type="image">
-						<posx>0</posx>
-						<posy>0</posy>
-						<width>38</width>
-						<height>38</height>
-						<texture border="0">smoke-panic.png</texture>
-						<visible>ListItem.Property(smokepanic)</visible>
-					</control>	
-					<control type="image">
-						<posx>0</posx>
-						<posy>0</posy>
-						<width>38</width>
-						<height>38</height>
-						<texture border="0">ListItem.Property(img)</texture>
-						<visible>!ListItem.Property(istitle)</visible>
+						<info>ListItem.Icon</info>
 					</control>
 					<control type="image">
 						<posx>0</posx>
@@ -351,12 +202,12 @@
 						<visible>ListItem.Property(istitle)</visible>
 					</control>
 					<control type="label">
-						<posx>250</posx>
+						<posx>50</posx>
 						<posy>0</posy>
-						<width>200</width>
+						<width>300</width>
 						<height>38</height>
 						<font>font18</font>
-						<align>right</align>
+						<align>left</align>
 						<aligny>center</aligny>
 						<textcolor>white</textcolor>
 						<selectedcolor>green</selectedcolor>
@@ -364,6 +215,7 @@
 						<info>ListItem.Label</info>
 						<visible>!ListItem.Property(istitle)</visible>
 					</control>
+<!--
 					<control type="label">
 						<posx>220</posx>
 						<posy>0</posy>
@@ -377,6 +229,7 @@
 						<info>ListItem.Property(value)</info>
 						<visible>!ListItem.Property(istitle)</visible>
 					</control>
+-->
 					<control type="label">
 						<posx>1000</posx>
 						<posy>0</posy>
@@ -391,6 +244,7 @@
 						<info>ListItem.Label2</info>
 						<visible>!ListItem.Property(istitle)</visible>
 					</control>
+<!--
 					<control type="label">
 						<posx>650</posx>
 						<posy>0</posy>
@@ -404,6 +258,7 @@
 						<info>ListItem.Property(value2)</info>
 						<visible>!ListItem.Property(istitle)</visible>
 					</control>
+-->
 				</focusedlayout>
 			</control>
 			<control type="group">
