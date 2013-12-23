@@ -36,11 +36,12 @@ def log( text, severity=xbmc.LOGNOTICE ):
 
 
 # Maange authentication
-passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
-passman.add_password(None, __rooturl__, __user__, __password__)
-authhandler = urllib2.HTTPBasicAuthHandler(passman)
-opener = urllib2.build_opener(authhandler)
-urllib2.install_opener(opener)
+if __login__=='': 		# Authentication optional
+	passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
+	passman.add_password(None, __rooturl__, __user__, __password__)
+	authhandler = urllib2.HTTPBasicAuthHandler(passman)
+	opener = urllib2.build_opener(authhandler)
+	urllib2.install_opener(opener)
 
 #get actioncodes from https://github.com/xbmc/xbmc/blob/master/xbmc/guilib/Key.h
 ACTION_PREVIOUS_MENU = 10
@@ -164,7 +165,7 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 	def getData(self):
 		xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         
-		url=__rooturl__+u'json.htm?type=devices&filter=all&used=true&order=Name'
+		url=__rooturl__+u'/json.htm?type=devices&filter=all&used=true&order=Name'
 
 		log('URL is '+url,xbmc.LOGNOTICE)
         
