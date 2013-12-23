@@ -15,4 +15,7 @@
     <string id="30044">Panic</string>
     <string id="30045">Normal</string>
     
+    <string id="30403">Wrong user/password</string>
+    <string id="30404">Not found. URL Error</string>
+    
 </strings>

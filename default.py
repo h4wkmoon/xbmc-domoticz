@@ -6,6 +6,7 @@ if sys.version_info < (2, 7):
 	import simplejson
 else:
 	import json as simplejson
+	
 
 ### get addon info and set globals
 __addon__        = xbmcaddon.Addon()
@@ -173,9 +174,33 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 			#~ pagehandle = open('/home/fpege/json.html', 'r')
 			html = pagehandle.read()
 			pagehandle.close()
-		except:  
+		except urllib2.HTTPError, e:
+			log('HTTPError = ' + str(e.code))
+			self.message('HTTPError = ' + __localize__(int("30"+str(e.code))))
 			xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+			self.onAction(ACTION_BACK)
 			return ""
+		except urllib2.URLError, e:
+			log('URLError = ' + str(e.reason))
+			self.message('URLError = ' +  __localize__(30404))
+			xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+			self.onAction(ACTION_BACK)
+			return ""
+		except httplib.HTTPException, e:
+			log('HTTPException')
+			self.message('HTTPException')
+			xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+			self.onAction(ACTION_BACK)
+			return ""
+		except Exception:
+			import traceback
+			log('generic exception: ' + traceback.format_exc())
+			self.message('generic exception: ' + traceback.format_exc())
+			xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+			self.onAction(ACTION_BACK)
+			return ""
+
+			
 
 		xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 		return simplejson.loads(html)
