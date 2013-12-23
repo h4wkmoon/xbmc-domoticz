@@ -14,7 +14,6 @@ What works :
 TODO : 
 * Internalization
 * Improve (add?;) error management
-* Custom image
 
 Installation : 
 * cd /tmp
