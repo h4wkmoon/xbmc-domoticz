@@ -145,7 +145,9 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 				log(myitem[u'CustomImage'])
 				mytype=__customimages__[myitem[u'TypeImg']][myitem[u'CustomImage']]+"-"+myitem[u'Status'].lower()+".png"
 			elif myitem[u'TypeImg'] == "temperature":
-				mytype=myitem[u'TypeImg']+".png"
+				mini=int(float(myitem[u'Data'].split(',')[0].split(' ')[0])/5)*5
+				maxi=mini+5
+				mytype="temp-"+str(mini)+"-"+str(maxi)+".png"
 			else:
 				mytype='home.png'
 			if myitem[u'Data'].lower() in __labels__:
