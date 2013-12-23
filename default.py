@@ -137,10 +137,10 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 		self.getControl(120).addItem(item)
 		odd=True
 		for myitem in results[u'result']:
+			if myitem[u'Type'].lower() in ['scene','group']:
+				continue
+				
 			log("Adding"+myitem[u'Name'],xbmc.LOGNOTICE)
-			
-			
-			
 			if myitem[u'TypeImg'] == "lightbulb" or  myitem[u'TypeImg'] == "blinds" or myitem[u'TypeImg'] == "contact" or myitem[u'TypeImg'] == 'smoke':
 				log(myitem[u'CustomImage'])
 				mytype=__customimages__[myitem[u'TypeImg']][myitem[u'CustomImage']]+"-"+myitem[u'Status'].lower()+".png"
