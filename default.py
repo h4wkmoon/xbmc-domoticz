@@ -19,12 +19,14 @@ __localize__     = __addon__.getLocalizedString
 __user__=__addon__.getSetting('login')
 __password__=__addon__.getSetting('password')
 __rooturl__=__addon__.getSetting('url')
+__favonly__=__addon__.getSetting('favonly')
 
 while __rooturl__=='': 
 	__addon__.openSettings()
 	__user__=__addon__.getSetting('login')
 	__password__=__addon__.getSetting('password')
 	__rooturl__=__addon__.getSetting('url')
+	__favonly__=__addon__.getSetting('favonly')
 
 
 
@@ -136,12 +138,12 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 		self.getControl(120).addItem(item)
 		odd=True
 		for myitem in results[u'result']:
+			if __favonly__=="true" and  myitem[u'Favorite']==0:  
+				continue
+
 			if myitem[u'Type'] == 'Group' or myitem[u'Type'] == 'Scene':
 				myitem[u'Data'] = myitem[u'Status']
 				myitem[u'CustomImage'] = 10
-			#~ 
-			#~ if
-				#~ continue
 				
 			log("Adding"+myitem[u'Name'],xbmc.LOGNOTICE)
 			if myitem[u'TypeImg'] == "lightbulb" or  myitem[u'TypeImg'] == "blinds" or myitem[u'TypeImg'] == "contact" or myitem[u'TypeImg'] == 'smoke':

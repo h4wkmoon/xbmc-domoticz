@@ -4,5 +4,6 @@
 		<setting id="url" 		type="text" 	label="30024" visible="true" default="" />
 		<setting id="login" 	type="text" 	label="30020" visible="true" default="" />
 		<setting id="password" 	type="text" 	label="30029" visible="true" default="" option="hidden" />
+		<setting id="favonly" 	type="bool" 	label="30030" visible="true" default="false" />
 	</category>
 </settings>

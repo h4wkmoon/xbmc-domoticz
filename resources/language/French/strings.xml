@@ -4,9 +4,10 @@
     <string id="30010">XBMC Domoticz</string>
     <string id="30011">General</string>
     
-    <string id="30020">Login</string>
     <string id="30024">Domoticz URL</string>
-    <string id="30029">Password</string>
+    <string id="30020">Utilisateur</string> 
+    <string id="30029">Mot de passe</string>
+    <string id="30030">Afficher les favoris seulement</string>
     
     <string id="30040">Eteint</string>
     <string id="30041">Allumé</string>
