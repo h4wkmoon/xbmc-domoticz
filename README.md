@@ -13,7 +13,7 @@ What works :
 
 TODO : 
 * Internalization
-* Impriove (add?;) error management
+* Improve (add?;) error management
 * Custom image
 
 Installation : 
