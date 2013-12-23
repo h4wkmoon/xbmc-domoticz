@@ -70,7 +70,12 @@ __customimages__ = { 'lightbulb': ['lightbulb','wallsocket','tv','harddisk','pri
 						'smoke': ['smoke'],
 						'contact': ['contact'],
 						'blinds': ['blinds'],
-						'temperature':['temperature']
+						'temperature':['temperature'],
+						'siren': ['siren'],
+						'dimmer':['dimmer'],
+						'motion': ['motion'],
+						'door': ['door'],
+						'dusk': ['dusk']
 						}
  
 class DomoticzWindow(xbmcgui.WindowXMLDialog):
@@ -146,7 +151,11 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 				myitem[u'CustomImage'] = 10
 				
 			log("Adding"+myitem[u'Name'],xbmc.LOGNOTICE)
-			if myitem[u'TypeImg'] == "lightbulb" or  myitem[u'TypeImg'] == "blinds" or myitem[u'TypeImg'] == "contact" or myitem[u'TypeImg'] == 'smoke':
+			# Ulgy thing because Domoticz does not handle Dusk sensors like the others
+			if u'SwitchType' in myitem and myitem[u'SwitchType'] == "Dusk Sensor":
+				myitem[u'TypeImg']='dusk'
+				
+			if myitem[u'TypeImg']  in ['lightbulb','blinds','contact','smoke','siren','dimmer','motion','door','dusk']:
 				log(myitem[u'CustomImage'])
 				mytype=__customimages__[myitem[u'TypeImg']][myitem[u'CustomImage']]+"-"+myitem[u'Status'].lower()+".png"
 			elif myitem[u'TypeImg'] == "temperature":
