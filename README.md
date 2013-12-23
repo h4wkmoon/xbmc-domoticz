@@ -19,7 +19,9 @@ TODO :
 Installation : 
 cd /tmp
 git clone http://www.github.com/h4wkmoon/xbmc-domoticz.git
+
 mv xbmc-domoticz $HOME/.xbmc/addons/
+and then restart XBMC
 
 
 Credits :
