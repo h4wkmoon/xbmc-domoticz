@@ -64,7 +64,7 @@ __opposite_status__ = {'Off':'On',
 					'Normal':'Panic'}
 					
  
-__customimages__ = { 'lightbulb': ['lightbulb','wallsocket','tv','harddisk','printer','amplifier','computer','fan','speaker','generic'],
+__customimages__ = { 'lightbulb': ['lightbulb','wallsocket','tv','harddisk','printer','amplifier','computer','fan','speaker','generic','push'],
 						'smoke': ['smoke'],
 						'contact': ['contact'],
 						'blinds': ['blinds'],
@@ -78,9 +78,9 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 		log('running __init__ from DomoticzWindow class', xbmc.LOGNOTICE)
         
 
-	def sendcmd(self,switchid,cmd):
+	def sendcmd(self,switchid,cmd,itemtype):
 		log("Sending "+cmd+" to Switch "+switchid, xbmc.LOGNOTICE)
-		thisurl=__rooturl__+"/json.htm?type=command&param=switchlight&idx="+switchid+"&switchcmd="+cmd+"&level=0"
+		thisurl=__rooturl__+"/json.htm?type=command&param="+itemtype+"&idx="+switchid+"&switchcmd="+cmd+"&level=0"
 		log ("URL is "+thisurl , xbmc.LOGNOTICE)
 		log('You selected : ' + switchid+"-"+cmd, xbmc.LOGNOTICE)
 		xbmc.executebuiltin( "ActivateWindow(busydialog)" )
@@ -110,9 +110,8 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 	def onClick(self, control):
 		item = self.getControl(control).getSelectedItem()
 		log("Click  "+item.getProperty('isswitch'),xbmc.LOGNOTICE)
-		if item.getProperty('isswitch') == 'true':
-			self.sendcmd(item.getProperty('idx'),__opposite_status__[item.getProperty('data')])
-         
+		if item.getProperty('type') == 'switchscene' or item.getProperty('type') == 'switchlight':
+			self.sendcmd(item.getProperty('idx'),__opposite_status__[item.getProperty('data')],item.getProperty('type') )
      
 	def onAction(self, action):
 		#~ captures user input and acts as needed
@@ -137,8 +136,12 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 		self.getControl(120).addItem(item)
 		odd=True
 		for myitem in results[u'result']:
-			if myitem[u'Type'].lower() in ['scene','group']:
-				continue
+			if myitem[u'Type'] == 'Group' or myitem[u'Type'] == 'Scene':
+				myitem[u'Data'] = myitem[u'Status']
+				myitem[u'CustomImage'] = 10
+			#~ 
+			#~ if
+				#~ continue
 				
 			log("Adding"+myitem[u'Name'],xbmc.LOGNOTICE)
 			if myitem[u'TypeImg'] == "lightbulb" or  myitem[u'TypeImg'] == "blinds" or myitem[u'TypeImg'] == "contact" or myitem[u'TypeImg'] == 'smoke':
@@ -161,12 +164,15 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 			else:
 				item.setProperty('isodd','false')
 
-			log("TypeImg :"+myitem[u'TypeImg'],xbmc.LOGNOTICE)
-			if myitem[u'TypeImg'] == "lightbulb" or myitem[u'TypeImg'] == 'smoke':
-				item.setProperty('isswitch','true')
+			log("Type :"+myitem[u'Type'],xbmc.LOGNOTICE)
+			if myitem[u'Type'] in ['Lighting 2','Lighting 1','Lighting 4','Security']:
+				item.setProperty('type','switchlight')
 			else:
-				item.setProperty('isswitch','false')
-
+				item.setProperty('type','none')
+			
+			if myitem[u'Type'] in ['Scene','Group']:
+				item.setProperty('type','switchscene')
+			
 			if u'Status' in myitem:
 				item.setProperty('data',myitem[u'Status'])
 
