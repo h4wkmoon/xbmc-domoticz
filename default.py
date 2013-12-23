@@ -64,6 +64,13 @@ __opposite_status__ = {'Off':'On',
 					'Normal':'Panic'}
 					
  
+__customimages__ = { 'lightbulb': ['lightbulb','wallsocket','tv','harddisk','printer','amplifier','computer','fan','speaker','generic'],
+						'smoke': ['smoke'],
+						'contact': ['contact'],
+						'blinds': ['blinds'],
+						'temperature':['temperature']
+						}
+ 
 class DomoticzWindow(xbmcgui.WindowXMLDialog):
 
 	def __init__(self, *args, **kwargs):
@@ -131,9 +138,12 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 		odd=True
 		for myitem in results[u'result']:
 			log("Adding"+myitem[u'Name'],xbmc.LOGNOTICE)
-
+			
+			
+			
 			if myitem[u'TypeImg'] == "lightbulb" or  myitem[u'TypeImg'] == "blinds" or myitem[u'TypeImg'] == "contact" or myitem[u'TypeImg'] == 'smoke':
-				mytype=myitem[u'TypeImg']+"-"+myitem[u'Status'].lower()+".png"
+				log(myitem[u'CustomImage'])
+				mytype=__customimages__[myitem[u'TypeImg']][myitem[u'CustomImage']]+"-"+myitem[u'Status'].lower()+".png"
 			elif myitem[u'TypeImg'] == "temperature":
 				mytype=myitem[u'TypeImg']+".png"
 			else:
@@ -141,7 +151,7 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 			if myitem[u'Data'].lower() in __labels__:
 				myitem[u'Data']=__localize__(__labels__[myitem[u'Data'].lower()])
               
-			item = xbmcgui.ListItem(label=myitem[u'Name'] ,label2=myitem[u'Data'])
+			item = xbmcgui.ListItem(label=myitem[u'Name'],label2=myitem[u'Data'])
 			item.setProperty('idx',myitem[u'idx'])
 			odd= not odd
 			if odd:
