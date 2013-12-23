@@ -18,8 +18,9 @@ TODO :
 
 Installation : 
 * cd /tmp
-* git clone http://www.github.com/h4wkmoon/xbmc-domoticz.git
-* mv xbmc-domoticz $HOME/.xbmc/addons/script.domoticz
+* wget --no-check-certificate https://github.com/h4wkmoon/xbmc-domoticz/archive/master.zip -O script.domoticz.zip
+* unzip script.domoticz.zip
+* mv xbmc-domoticz-master ~/.xbmc/addons/script.domoticz
 * and then restart XBMC
 
 
