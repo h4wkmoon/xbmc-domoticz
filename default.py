@@ -154,7 +154,8 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 				maxi=mini+5
 				mytype="temp-"+str(mini)+"-"+str(maxi)+".png"
 			else:
-				mytype='home.png'
+				mytype=myitem[u'TypeImg'].lower()+".png"
+				
 			if myitem[u'Data'].lower() in __labels__:
 				myitem[u'Data']=__localize__(__labels__[myitem[u'Data'].lower()])
               
