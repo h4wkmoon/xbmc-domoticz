@@ -14,11 +14,13 @@ __addonname__    = __addon__.getAddonInfo('name')
 __author__       = __addon__.getAddonInfo('author')
 __version__      = __addon__.getAddonInfo('version')
 __addonpath__    = __addon__.getAddonInfo('path')
+__images__		 = __addonpath__+'/resources/skins/Default/media/'
 __localize__     = __addon__.getLocalizedString
 __user__=__addon__.getSetting('login')
 __password__=__addon__.getSetting('password')
 __rooturl__=__addon__.getSetting('url')
 __favonly__=__addon__.getSetting('favonly')
+DEBUG = __addon__.getSetting('debug')
 
 while __rooturl__=='': 
 	__addon__.openSettings()
@@ -35,7 +37,8 @@ def log( text, severity=xbmc.LOGNOTICE ):
 	if type( text).__name__=='unicode':
 		text = text.encode('utf-8')
 	message = ('[%s] - %s' % ( __addonname__ ,text.__str__() ) )
-	xbmc.log( msg=message, level=severity)
+	if severity == xbmc.LOGDEBUG or DEBUG=="true":
+		xbmc.log( msg=message, level=severity)
 
 # Popup function. based on XBMC standard
 def message( message):
@@ -54,7 +57,10 @@ if __user__!='': 		# Authentication optional
 #get actioncodes from https://github.com/xbmc/xbmc/blob/master/xbmc/guilib/Key.h
 ACTION_PREVIOUS_MENU = 10
 ACTION_BACK = 92
-
+ACTION_MOVE_LEFT=1
+ACTION_MOVE_RIGHT=2
+ACTION_SELECT_ITEM=7
+ACTION_ENTER=135
 
 # Dict used for internalization
 # The keys are Domoticz status, the values are lablels form the international string.xml files.
@@ -97,7 +103,7 @@ __customimages__ = { 'lightbulb': ['lightbulb','wallsocket','tv','harddisk','pri
 def sendcmd(switchid,itemtype,cmd,level=0):
 		log("Sending "+cmd+" to Switch "+str(switchid), xbmc.LOGNOTICE)
 		thisurl=__rooturl__+"/json.htm?type=command&param="+itemtype+"&idx="+str(switchid)+"&switchcmd="+cmd+"&level="+str(level)
-		log ("URL is "+thisurl , xbmc.LOGNOTICE)
+		log ("URL is "+thisurl , xbmc.LOGDEBUG)
 		xbmc.executebuiltin( "ActivateWindow(busydialog)" )
 		try:
 			pagehandle = urllib2.urlopen(thisurl)
@@ -106,7 +112,7 @@ def sendcmd(switchid,itemtype,cmd,level=0):
 		except:
 			html="Error !!"
 		xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-		log(html, xbmc.LOGNOTICE)
+		log(html, xbmc.LOGERROR)
 		xbmc.sleep(2)
 
 # This is how we interact with the dimmer
@@ -122,9 +128,8 @@ class Domoticzpopupslider(xbmcgui.WindowDialog):
 		self.level=args[0]['level']
 		self.idx=args[0]['idx']
 		log('running __init__ from Domoticzpopupslider class', xbmc.LOGNOTICE)
-		
 		self.fond=xbmcgui.ControlImage(self.x,self.y,self.width,self.height,"speedfan-panel.png",2)
-		self.slider = xbmcgui.ControlSlider(self.x+int((self.width-9*self.width/10)/2),self.y+int((self.height-10)/2),int(9*self.width/10),10)
+		self.slider = xbmcgui.ControlSlider(self.x+int((self.width-9*self.width/10)/2),self.y+int((self.height-10)/2),int(9*self.width/10),10)  #,texturefocus=os.path.join(__addonpath__,'resources','skins','Default','media','slider-images-handle.png'),texture=os.path.join(__addonpath__,'resources','skins','Default','media','slider-images-handle.png'))
 		self.title= xbmcgui.ControlLabel(self.x+int((self.width-9*self.width/10)/2),self.y+10,int(9*self.width/10),10,self.title)
 		#~ log(self.title)
 		self.addControl(self.fond)
@@ -148,23 +153,79 @@ class Domoticzpopupslider(xbmcgui.WindowDialog):
 		if(action == ACTION_PREVIOUS_MENU or action == ACTION_BACK):
 			#if the user hits back or exit, close the window
 			log('user initiated previous menu or back', xbmc.LOGNOTICE)
-			global __windowopen__
-			#set this to false so the worker thread knows the window is being closed
-			__windowopen__ = False
-			log('set windowopen to false', xbmc.LOGNOTICE)
 			#tell the window to close
 			log('tell the window to close', xbmc.LOGNOTICE)
 			sendcmd(self.idx,'switchlight','Set%20Level',int(16*self.slider.getPercent()/100))
 			self.close()
 			
 
+class Domoticzpopupblinds(xbmcgui.WindowDialog):
+	width=500
+	height=200
+	x=100
+	y=100
+	
+	def __init__(self, *args, **kwargs):
+		#and define it as self
+		self.title=args[0]['title']
+		self.idx=args[0]['idx']
+		log('running __init__ from Domoticzpopupblinds class', xbmc.LOGNOTICE)
+		self.fond=xbmcgui.ControlImage(self.x,self.y,self.width,self.height,"speedfan-panel.png",2)
+		self.on=xbmcgui.ControlButton(self.x+int(self.width/3),self.y+self.height-100,48,48,focusTexture=__images__+"blinds-open.png",noFocusTexture=__images__+"blinds-open-nofocus.png",label="On")
+		self.off=xbmcgui.ControlButton(self.x+int(2*self.width/3),self.y+self.height-100,48,48,focusTexture=__images__+"blinds-closed.png",noFocusTexture=__images__+"blinds-closed-nofocus.png",label="Off")
+		self.title= xbmcgui.ControlLabel(self.x+int((self.width-9*self.width/10)/2),self.y+10,int(9*self.width/10),10,self.title)
+		#~ log(self.title)
+		self.addControl(self.fond)
+		self.addControl(self.title)
+		self.addControl(self.on)
+		self.addControl(self.off)
+		self.setFocus(self.on)
+		self.on.setEnabled(True)
+		self.off.setEnabled(True)
+		
+		
+	def onInit(self):
+		#tell the object to go read the log file, parse it, and put it into listitems for the XML
+		log('running inInit from Domoticzpopupblinds class', xbmc.LOGDEBUG)
+
+	def onClick(self, control):
+		log('running onClick from Domoticzpopupblinds class', xbmc.LOGNOTICE)
+		log("Click blinds"+str(control), xbmc.LOGNOTICE)
+		if control==self.on.getId():
+			log("ON", xbmc.LOGNOTICE)
+			sendcmd(self.idx,"switchlight","On")
+		elif control==self.off.getId():
+			log("OFF", xbmc.LOGNOTICE)
+			sendcmd(self.idx,"switchlight","Off")
+
+
+	def onAction(self, action):
+		log('running onAction from Domoticzpopupblinds class. Action:'+str(action.getId()), xbmc.LOGNOTICE)
+		#~ captures user input and acts as needed
+		if(action == ACTION_PREVIOUS_MENU or action == ACTION_BACK):
+			#if the user hits back or exit, close the window
+			log('user initiated previous menu or back', xbmc.LOGNOTICE)
+			#tell the window to close
+			log('tell the  Domoticzpopupblinds window to close', xbmc.LOGNOTICE)
+			#sendcmd(self.idx,'switchlight','Set%20Level',int(16*self.slider.getPercent()/100))
+			self.close()
+		elif action == ACTION_MOVE_LEFT:
+			self.setFocus(self.on)
+		elif action == ACTION_MOVE_RIGHT:
+			self.setFocus(self.off)
+		elif action.getId() in [100,7,12]:
+			self.onClick(self.getFocusId())
+			
+
+
+
 
 class DomoticzWindow(xbmcgui.WindowXMLDialog):
 
 	def __init__(self, *args, **kwargs):
 
-		#and define it as self
-		log('running __init__ from DomoticzWindow class', xbmc.LOGNOTICE)
+		#~ #and define it as self
+		log('running __init__ from DomoticzWindow class', xbmc.LOGDEBUG)
 
        
       
@@ -172,7 +233,7 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 # INIT Function       
 	def onInit(self):
 		#tell the object to go read the log file, parse it, and put it into listitems for the XML
-		log('running inInit from DomoticzWindow class', xbmc.LOGNOTICE)
+		log('running onInit from DomoticzWindow class', xbmc.LOGNOTICE)
 		self.populateFromDomo()
         
 	
@@ -181,10 +242,14 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
      # And then regenerate the window.
 	def onClick(self, control):
 		item = self.getControl(control).getSelectedItem()
-		log("Click  "+item.getProperty('isswitch'),xbmc.LOGNOTICE)
+		log("Click  "+item.getProperty('isswitch'),xbmc.LOGDEBUG)
 		if item.getProperty('type') == 'switchscene' or item.getProperty('type') == 'switchlight':
 			sendcmd(int(item.getProperty('idx')),item.getProperty('type'),__opposite_status__[item.getProperty('data')],0)
-
+		elif item.getProperty('type') == 'blinds':
+			args={'title':item.getLabel(), 'idx':item.getProperty('idx')}
+			mydisplay = Domoticzpopupblinds(args)
+			mydisplay.doModal()
+			del mydisplay
 		else:
 			args={'title':item.getLabel(), 'idx':item.getProperty('idx'),'level':item.getProperty('level')}
 			mydisplay = Domoticzpopupslider(args)
@@ -200,10 +265,6 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 		if(action == ACTION_PREVIOUS_MENU or action == ACTION_BACK):
 			#if the user hits back or exit, close the window
 			log('user initiated previous menu or back', xbmc.LOGNOTICE)
-			global __windowopen__
-			#set this to false so the worker thread knows the window is being closed
-			__windowopen__ = False
-			log('set windowopen to false', xbmc.LOGNOTICE)
 			#tell the window to close
 			log('tell the window to close', xbmc.LOGNOTICE)
 			self.close()
@@ -231,7 +292,7 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 				myitem[u'Data'] = myitem[u'Status']
 				myitem[u'CustomImage'] = 10
 
-			log("Adding"+myitem[u'Name'],xbmc.LOGNOTICE)
+			log("Adding :"+myitem[u'Name'],xbmc.LOGDEBUG)
 
 			# Ulgy thing because Domoticz does not handle Dusk sensors like the others
 			# So I override the TypeImg.
@@ -242,7 +303,7 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 			# Choosing the right icon.
 			# For 'lightbulb','blinds','contact','smoke','siren','motion','door' and 'dusk' items, i choose the customImage, suffixed with the status (on/off). 
 			if myitem[u'TypeImg']  in ['lightbulb','blinds','contact','smoke','siren','motion','door','dusk']:
-				log(myitem[u'CustomImage'])
+				log("CustomImage :" + str(myitem[u'CustomImage']),xbmc.LOGDEBUG)
 				mytype=__customimages__[myitem[u'TypeImg']][myitem[u'CustomImage']]+"-"+myitem[u'Status'].lower()+".png"
 			# For Temperature, I choose the one that matches the range
 			elif myitem[u'TypeImg'] == "temperature":
@@ -276,6 +337,8 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 			if myitem[u'Type'] in ['Lighting 2','Lighting 1','Lighting 4','Security']:
 				if myitem[u'TypeImg']=='dimmer':
 					item.setProperty('type','dimmer')
+				elif myitem[u'TypeImg']=='blinds':
+					item.setProperty('type','blinds')
 				else:
 					item.setProperty('type','switchlight')
 			elif myitem[u'Type'] in ['Scene','Group']:
@@ -307,30 +370,29 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
         
 		try:
 			pagehandle = urllib2.urlopen(url)
-			#~ pagehandle = open('/home/fpege/json.html', 'r')
 			html = pagehandle.read()
 			pagehandle.close()
 		except urllib2.HTTPError, e:
-			log('HTTPError = ' + str(e.code))
+			log('HTTPError = ' + str(e.code) ,xbmc.LOGERROR)
 			message('HTTPError = ' + __localize__(int("30"+str(e.code))))
 			xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 			self.onAction(ACTION_BACK)
 			return ""
 		except urllib2.URLError, e:
-			log('URLError = ' + str(e.reason))
+			log('URLError = ' + str(e.reason),xbmc.LOGERROR)
 			message('URLError = ' +  __localize__(30404))
 			xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 			self.onAction(ACTION_BACK)
 			return ""
 		except httplib.HTTPException, e:
-			log('HTTPException')
+			log('HTTPException',xbmc.LOGERROR)
 			message('HTTPException')
 			xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 			self.onAction(ACTION_BACK)
 			return ""
 		except Exception:
 			import traceback
-			log('generic exception: ' + traceback.format_exc())
+			log('generic exception: ' + traceback.format_exc(),xbmc.LOGERROR)
 			message('generic exception: ' + traceback.format_exc())
 			xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 			self.onAction(ACTION_BACK)
