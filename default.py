@@ -1,5 +1,4 @@
 import xbmc, xbmcgui,xbmcaddon
-import time
 
 import urllib2
 if sys.version_info < (2, 7):
@@ -30,14 +29,21 @@ while __rooturl__=='':
 
 
 
+
+# Log function. based on XBMC standard
 def log( text, severity=xbmc.LOGNOTICE ):
 	if type( text).__name__=='unicode':
 		text = text.encode('utf-8')
 	message = ('[%s] - %s' % ( __addonname__ ,text.__str__() ) )
 	xbmc.log( msg=message, level=severity)
 
+# Popup function. based on XBMC standard
+def message( message):
+		dialog = xbmcgui.Dialog()
+		dialog.ok("My message title", message)
+ 
 
-# Maange authentication
+# Manage authentication
 if __user__!='': 		# Authentication optional
 	passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
 	passman.add_password(None, __rooturl__, __user__, __password__)
@@ -49,7 +55,9 @@ if __user__!='': 		# Authentication optional
 ACTION_PREVIOUS_MENU = 10
 ACTION_BACK = 92
 
+
 # Dict used for internalization
+# The keys are Domoticz status, the values are lablels form the international string.xml files.
 __labels__ = {	'off':30040,
 			'on' : 30041,
 			'open' : 30042,
@@ -66,6 +74,8 @@ __opposite_status__ = {'Off':'On',
 					'Normal':'Panic'}
 					
  
+# Ugly thing. This lists the custom image available by type of item.
+# As Domoticz has several attributes to identify the item types, this ulgy thing stays, for now.
 __customimages__ = { 'lightbulb': ['lightbulb','wallsocket','tv','harddisk','printer','amplifier','computer','fan','speaker','generic','push'],
 						'smoke': ['smoke'],
 						'contact': ['contact'],
@@ -77,19 +87,17 @@ __customimages__ = { 'lightbulb': ['lightbulb','wallsocket','tv','harddisk','pri
 						'door': ['door'],
 						'dusk': ['dusk']
 						}
- 
-class DomoticzWindow(xbmcgui.WindowXMLDialog):
 
-	def __init__(self, *args, **kwargs):
-		#and define it as self
-		log('running __init__ from DomoticzWindow class', xbmc.LOGNOTICE)
-        
 
-	def sendcmd(self,switchid,cmd,itemtype):
-		log("Sending "+cmd+" to Switch "+switchid, xbmc.LOGNOTICE)
-		thisurl=__rooturl__+"/json.htm?type=command&param="+itemtype+"&idx="+switchid+"&switchcmd="+cmd+"&level=0"
+# Function to send commands to domoticz.
+# It handles
+# switches
+# dimmer
+# scenes & groups
+def sendcmd(switchid,itemtype,cmd,level=0):
+		log("Sending "+cmd+" to Switch "+str(switchid), xbmc.LOGNOTICE)
+		thisurl=__rooturl__+"/json.htm?type=command&param="+itemtype+"&idx="+str(switchid)+"&switchcmd="+cmd+"&level="+str(level)
 		log ("URL is "+thisurl , xbmc.LOGNOTICE)
-		log('You selected : ' + switchid+"-"+cmd, xbmc.LOGNOTICE)
 		xbmc.executebuiltin( "ActivateWindow(busydialog)" )
 		try:
 			pagehandle = urllib2.urlopen(thisurl)
@@ -99,27 +107,93 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 			html="Error !!"
 		xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 		log(html, xbmc.LOGNOTICE)
-		time.sleep(2)
-		#self.message("Done")
-		self.populateFromDomo()
+		xbmc.sleep(2)
+
+# This is how we interact with the dimmer
+class Domoticzpopupslider(xbmcgui.WindowDialog):
+	width=500
+	height=200
+	x=100
+	y=100
+	
+	def __init__(self, *args, **kwargs):
+		#and define it as self
+		self.title=args[0]['title']
+		self.level=args[0]['level']
+		self.idx=args[0]['idx']
+		log('running __init__ from Domoticzpopupslider class', xbmc.LOGNOTICE)
+		
+		self.fond=xbmcgui.ControlImage(self.x,self.y,self.width,self.height,"speedfan-panel.png",2)
+		self.slider = xbmcgui.ControlSlider(self.x+int((self.width-9*self.width/10)/2),self.y+int((self.height-10)/2),int(9*self.width/10),10)
+		self.title= xbmcgui.ControlLabel(self.x+int((self.width-9*self.width/10)/2),self.y+10,int(9*self.width/10),10,self.title)
+		#~ log(self.title)
+		self.addControl(self.fond)
+		self.addControl(self.title)
+		self.addControl(self.slider)
+		self.slider.setPercent(int(self.level))
+		self.setFocus(self.slider)
+		
+		
+	def onInit(self):
+		#tell the object to go read the log file, parse it, and put it into listitems for the XML
+		log('running inInit from Domoticzpopupslider class', xbmc.LOGNOTICE)
         
         
+# When the user goes back, the command to dimmer is sent, and the window is closed.
+# Level is defined like that : 
+# 0 = 0%
+# 16 = 100%
+	def onAction(self, action):
+		#~ captures user input and acts as needed
+		if(action == ACTION_PREVIOUS_MENU or action == ACTION_BACK):
+			#if the user hits back or exit, close the window
+			log('user initiated previous menu or back', xbmc.LOGNOTICE)
+			global __windowopen__
+			#set this to false so the worker thread knows the window is being closed
+			__windowopen__ = False
+			log('set windowopen to false', xbmc.LOGNOTICE)
+			#tell the window to close
+			log('tell the window to close', xbmc.LOGNOTICE)
+			sendcmd(self.idx,'switchlight','Set%20Level',int(16*self.slider.getPercent()/100))
+			self.close()
+			
+
+
+class DomoticzWindow(xbmcgui.WindowXMLDialog):
+
+	def __init__(self, *args, **kwargs):
+
+		#and define it as self
+		log('running __init__ from DomoticzWindow class', xbmc.LOGNOTICE)
+
+       
+      
+       
 # INIT Function       
 	def onInit(self):
 		#tell the object to go read the log file, parse it, and put it into listitems for the XML
 		log('running inInit from DomoticzWindow class', xbmc.LOGNOTICE)
 		self.populateFromDomo()
         
-	def message(self, message):
-		dialog = xbmcgui.Dialog()
-		dialog.ok(" My message title", message)
-     
+	
+     # When we click on an item, if it's a switch, a scene or a group, we switch it, 
+     # if it's a dimmer, let's make the popup appear
+     # And then regenerate the window.
 	def onClick(self, control):
 		item = self.getControl(control).getSelectedItem()
 		log("Click  "+item.getProperty('isswitch'),xbmc.LOGNOTICE)
 		if item.getProperty('type') == 'switchscene' or item.getProperty('type') == 'switchlight':
-			self.sendcmd(item.getProperty('idx'),__opposite_status__[item.getProperty('data')],item.getProperty('type') )
-     
+			sendcmd(int(item.getProperty('idx')),item.getProperty('type'),__opposite_status__[item.getProperty('data')],0)
+
+		else:
+			args={'title':item.getLabel(), 'idx':item.getProperty('idx'),'level':item.getProperty('level')}
+			mydisplay = Domoticzpopupslider(args)
+			mydisplay.doModal()
+			del mydisplay
+		
+		self.populateFromDomo()
+
+# Closes the windows.
 	def onAction(self, action):
 		#~ captures user input and acts as needed
 		log('running onAction from DomoticzWindow class', xbmc.LOGNOTICE)
@@ -134,40 +208,62 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 			log('tell the window to close', xbmc.LOGNOTICE)
 			self.close()
 
+
+# The big thing.
 	def populateFromDomo(self):
-		results=self.getData()
-		self.getControl(120).reset()
-		#time.sleep(5)
-		item = xbmcgui.ListItem(label="XBMC Domoticz")
+		results=self.getData()			# Ask domoticz for data
+		self.getControl(120).reset()	# Reset the window. Used for update
+		
+		# A title
+		item = xbmcgui.ListItem(label="XBMC Domoticz")			
 		item.setProperty('istitle','true')
 		self.getControl(120).addItem(item)
-		odd=True
+		
+		odd=True	# Used to alernate the line colors.
 		for myitem in results[u'result']:
+			
+			# If the user choose to display only the favoraites, then so be it.
 			if __favonly__=="true" and  myitem[u'Favorite']==0:  
 				continue
-
+	
+			# Groups & Scenes lack some attributes. Let's set the missing ones.
 			if myitem[u'Type'] == 'Group' or myitem[u'Type'] == 'Scene':
 				myitem[u'Data'] = myitem[u'Status']
 				myitem[u'CustomImage'] = 10
-				
+
 			log("Adding"+myitem[u'Name'],xbmc.LOGNOTICE)
+
 			# Ulgy thing because Domoticz does not handle Dusk sensors like the others
+			# So I override the TypeImg.
 			if u'SwitchType' in myitem and myitem[u'SwitchType'] == "Dusk Sensor":
 				myitem[u'TypeImg']='dusk'
-				
-			if myitem[u'TypeImg']  in ['lightbulb','blinds','contact','smoke','siren','dimmer','motion','door','dusk']:
+
+
+			# Choosing the right icon.
+			# For 'lightbulb','blinds','contact','smoke','siren','motion','door' and 'dusk' items, i choose the customImage, suffixed with the status (on/off). 
+			if myitem[u'TypeImg']  in ['lightbulb','blinds','contact','smoke','siren','motion','door','dusk']:
 				log(myitem[u'CustomImage'])
 				mytype=__customimages__[myitem[u'TypeImg']][myitem[u'CustomImage']]+"-"+myitem[u'Status'].lower()+".png"
+			# For Temperature, I choose the one that matches the range
 			elif myitem[u'TypeImg'] == "temperature":
 				mini=int(float(myitem[u'Data'].split(',')[0].split(' ')[0])/5)*5
 				maxi=mini+5
 				mytype="temp-"+str(mini)+"-"+str(maxi)+".png"
+			# For dimmer, I choose between on and off by comparing the level with 50%.
+			# And still, we allow the use of custom images.
+			elif myitem[u'TypeImg'] == 'dimmer':
+				status="on"
+				if myitem[u'Level']<50:
+					status='off'
+				mytype=__customimages__[myitem[u'TypeImg']][myitem[u'CustomImage']]+"-"+status+".png"
 			else:
 				mytype=myitem[u'TypeImg'].lower()+".png"
-				
+
+			# There we translate Domoticz lables using the standard functionds of xbmc
 			if myitem[u'Data'].lower() in __labels__:
 				myitem[u'Data']=__localize__(__labels__[myitem[u'Data'].lower()])
               
+            # Adding the item, one line is grey, the next is black.  
 			item = xbmcgui.ListItem(label=myitem[u'Name'],label2=myitem[u'Data'])
 			item.setProperty('idx',myitem[u'idx'])
 			odd= not odd
@@ -176,20 +272,28 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 			else:
 				item.setProperty('isodd','false')
 
-			log("Type :"+myitem[u'Type'],xbmc.LOGNOTICE)
+			# Setting the property "type", used to know how the programm will interact with it.
 			if myitem[u'Type'] in ['Lighting 2','Lighting 1','Lighting 4','Security']:
-				item.setProperty('type','switchlight')
+				if myitem[u'TypeImg']=='dimmer':
+					item.setProperty('type','dimmer')
+				else:
+					item.setProperty('type','switchlight')
+			elif myitem[u'Type'] in ['Scene','Group']:
+				item.setProperty('type','switchscene')
 			else:
 				item.setProperty('type','none')
 			
-			if myitem[u'Type'] in ['Scene','Group']:
-				item.setProperty('type','switchscene')
-			
+			# Data will be used when we click on the item.
 			if u'Status' in myitem:
 				item.setProperty('data',myitem[u'Status'])
+			
+			# Level will be used by the slider popup.
+			if u'Level' in myitem:
+				item.setProperty('level',str(myitem[u'Level']))
 
-			item.setProperty(mytype.lower(),'true')
+			# Set the icon
 			item.setIconImage(mytype)
+			
 			self.getControl(120).addItem(item)
 			
 
@@ -208,26 +312,26 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 			pagehandle.close()
 		except urllib2.HTTPError, e:
 			log('HTTPError = ' + str(e.code))
-			self.message('HTTPError = ' + __localize__(int("30"+str(e.code))))
+			message('HTTPError = ' + __localize__(int("30"+str(e.code))))
 			xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 			self.onAction(ACTION_BACK)
 			return ""
 		except urllib2.URLError, e:
 			log('URLError = ' + str(e.reason))
-			self.message('URLError = ' +  __localize__(30404))
+			message('URLError = ' +  __localize__(30404))
 			xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 			self.onAction(ACTION_BACK)
 			return ""
 		except httplib.HTTPException, e:
 			log('HTTPException')
-			self.message('HTTPException')
+			message('HTTPException')
 			xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 			self.onAction(ACTION_BACK)
 			return ""
 		except Exception:
 			import traceback
 			log('generic exception: ' + traceback.format_exc())
-			self.message('generic exception: ' + traceback.format_exc())
+			message('generic exception: ' + traceback.format_exc())
 			xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 			self.onAction(ACTION_BACK)
 			return ""

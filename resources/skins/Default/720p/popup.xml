@@ -1,0 +1,59 @@
+<window id="1234" type="dialog">
+  <defaultcontrol>2</defaultcontrol>
+  <allowoverlay>yes</allowoverlay>
+  <visible>true</visible>
+  <coordinates>
+    <system>1</system>
+    <posX>200</posX>
+    <posY>100</posY>
+  </coordinates>
+  <animation effect="fade" time="250">WindowOpen</animation>
+  <animation effect="fade" time="250">WindowClose</animation>
+  <controls>
+			<control type="group">
+			<posx>100</posx>
+			<posy>30</posy>
+			<!-- ** Required ** Do not change <id> or <type> -->
+			<control type="image">
+				<posx>300</posx>
+				<posy>200</posy>
+				<width>545</width>
+				<height>350</height>
+				<texture border="40">speedfan-panel.png</texture>
+				
+			</control>
+			<control type="image">
+				<description>Window Icon</description>
+				<posx>25</posx>
+				<posy>8</posy>
+				<width>48</width>
+				<height>48</height>
+				<texture>home.png</texture>
+			</control>
+			<control type="image">
+				<description>Window Title</description>
+				<posx>750</posx>
+				<posy>150</posy>
+				<width>350</width>
+				<height>35</height>
+				<texture>domoticz-title.png</texture>
+			</control>
+			<control type="button" id="210">
+				<description>Close Window button</description>
+				<posx>1000</posx>
+				<posy>3</posy>
+				<width>64</width>
+				<height>32</height>
+				<label>-</label>
+				<font>-</font>
+				<onclick>PreviousMenu</onclick>
+				<texturefocus>DialogCloseButton-focus.png</texturefocus>
+				<texturenofocus>DialogCloseButton.png</texturenofocus>
+				<onleft>120</onleft>
+				<onright>120</onright>
+				<onup>120</onup>
+				<ondown>120</ondown>
+				<visible>system.getbool(input.enablemouse)</visible>
+			</control>
+	</contols>
+</window>
