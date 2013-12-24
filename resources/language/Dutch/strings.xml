@@ -2,22 +2,22 @@
 
 <strings>
     <string id="30010">XBMC Domoticz</string>
-    <string id="30011">General</string>
+    <string id="30011">Algemeen</string>
     
-    <string id="30020">Login</string>
+    <string id="30020">Login (optie)</string>
     <string id="30024">Domoticz URL</string>
-    <string id="30029">Password</string>
-    <string id="30030">Display Favorites only</string>
+    <string id="30029">Wachtwoord</string>
+    <string id="30030">Laat alleen Favorieten zien</string>
 
     
-    <string id="30040">On</string>
-    <string id="30041">Off</string>
+    <string id="30040">Aan</string>
+    <string id="30041">Uit</string>
     <string id="30042">Open</string>
-    <string id="30043">Closed</string>
-    <string id="30044">Panic</string>
-    <string id="30045">Normal</string>
+    <string id="30043">Dicht</string>
+    <string id="30044">Paniek</string>
+    <string id="30045">Normaal</string>
     
-    <string id="30403">Wrong user/password</string>
-    <string id="30404">Not found. URL Error</string>
+    <string id="30403">Verkeerde gebruiker/wachtwoord</string>
+    <string id="30404">Niet gevonden. URL Fout</string>
     
 </strings>
