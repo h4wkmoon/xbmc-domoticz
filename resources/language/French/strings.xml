@@ -9,6 +9,7 @@
     <string id="30029">Mot de passe</string>
     <string id="30030">Afficher les favoris seulement</string>
     <string id="30031">Debug</string>
+    <string id="30032">Vue</string>
     
     <string id="30040">Eteint</string>
     <string id="30041">Allumé</string>
@@ -17,7 +18,10 @@
     <string id="30044">Panique</string>
     <string id="30045">Normal</string>
     
+    <string id="30060">Liste</string>
+    <string id="30061">Widget</string>
+    
     <string id="30403">Mauvais utilisateur ou mot de passe</string>
     <string id="30404">Erreur dans l'url</string>
-    
+
 </strings>

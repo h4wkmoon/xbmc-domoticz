@@ -9,7 +9,7 @@
     <string id="30029">Wachtwoord</string>
     <string id="30030">Laat alleen Favorieten zien</string>
     <string id="30031">Debug</string>
-
+    <string id="30032">View</string>
     
     <string id="30040">Aan</string>
     <string id="30041">Uit</string>
@@ -17,6 +17,9 @@
     <string id="30043">Dicht</string>
     <string id="30044">Paniek</string>
     <string id="30045">Normaal</string>
+   
+    <string id="30060">List</string>
+    <string id="30061">Widget</string>
     
     <string id="30403">Verkeerde gebruiker/wachtwoord</string>
     <string id="30404">Niet gevonden. URL Fout</string>

@@ -21,6 +21,7 @@ __password__=__addon__.getSetting('password')
 __rooturl__=__addon__.getSetting('url')
 __favonly__=__addon__.getSetting('favonly')
 DEBUG = __addon__.getSetting('debug')
+__view__=int(__addon__.getSetting('view'))
 
 while __rooturl__=='': 
 	__addon__.openSettings()
@@ -29,8 +30,8 @@ while __rooturl__=='':
 	__rooturl__=__addon__.getSetting('url')
 	__favonly__=__addon__.getSetting('favonly')
 
-
-
+VIEW_LIST=0
+VIEW_WIDGET=1
 
 # Log function. based on XBMC standard
 def log( text, severity=xbmc.LOGNOTICE ):
@@ -114,6 +115,128 @@ def sendcmd(switchid,itemtype,cmd,level=0):
 		xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 		log(html, xbmc.LOGERROR)
 		xbmc.sleep(2)
+		
+def getData():
+		xbmc.executebuiltin( "ActivateWindow(busydialog)" )
+        
+		url=__rooturl__+u'/json.htm?type=devices&filter=all&used=true&order=Name'
+
+		log('URL is '+url,xbmc.LOGNOTICE)
+        
+        
+		try:
+			pagehandle = urllib2.urlopen(url)
+			html = pagehandle.read()
+			pagehandle.close()
+		except urllib2.HTTPError, e:
+			log('HTTPError = ' + str(e.code) ,xbmc.LOGERROR)
+			message('HTTPError = ' + __localize__(int("30"+str(e.code))))
+			xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+			self.onAction(ACTION_BACK)
+			return ""
+		except urllib2.URLError, e:
+			log('URLError = ' + str(e.reason),xbmc.LOGERROR)
+			message('URLError = ' +  __localize__(30404))
+			xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+			self.onAction(ACTION_BACK)
+			return ""
+		except httplib.HTTPException, e:
+			log('HTTPException',xbmc.LOGERROR)
+			message('HTTPException')
+			xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+			self.onAction(ACTION_BACK)
+			return ""
+		except Exception:
+			import traceback
+			log('generic exception: ' + traceback.format_exc(),xbmc.LOGERROR)
+			message('generic exception: ' + traceback.format_exc())
+			xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+			self.onAction(ACTION_BACK)
+			return ""
+
+			
+		xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+		return simplejson.loads(html)
+		
+def transformDomoticz(json):
+	results=[]
+	for myitem in json[u'result']:
+		item={}
+		# If the user choose to display only the favoraites, then so be it.
+		if __favonly__=="true" and  myitem[u'Favorite']==0:  
+			continue
+			
+		if myitem[u'Type'] == 'Group' or myitem[u'Type'] == 'Scene':
+				item[u'Data'] = myitem[u'Status']
+				item[u'CustomImage'] = 10
+		else:
+				item[u'Data'] = myitem['Data']
+				item[u'CustomImage']=myitem[u'CustomImage']
+				
+		# There we translate Domoticz lables using the standard functionds of xbmc
+		if item[u'Data'].lower() in __labels__:
+			item[u'Data']=__localize__(__labels__[item[u'Data'].lower()])
+		
+		# Domoticz handles dusk sensors wierdly, in my opinion.
+		if u'SwitchType' in myitem and myitem[u'SwitchType'] == "Dusk Sensor":
+				item[u'TypeImg']='dusk'
+		else:
+				item[u'TypeImg']= myitem[u'TypeImg']
+	
+		# Choose the icon
+		if myitem[u'TypeImg']  in ['lightbulb','blinds','contact','smoke','siren','motion','door','dusk']:
+			log("CustomImage :" + str(item[u'CustomImage']),xbmc.LOGDEBUG)
+			icon=__customimages__[myitem[u'TypeImg']][item[u'CustomImage']]+"-"+myitem[u'Status'].lower()+".png"
+			# For Temperature, I choose the one that matches the range
+		elif myitem[u'TypeImg'] == "temperature":
+			mini=int(float(myitem[u'Data'].split(',')[0].split(' ')[0])/5)*5
+			maxi=mini+5
+			icon="temp-"+str(mini)+"-"+str(maxi)+".png"
+		# For dimmer, I choose between on and off by comparing the level with 50%.
+		# And still, we allow the use of custom images.
+		elif myitem[u'TypeImg'] == 'dimmer':
+			status="on"
+			if myitem[u'Level']<50:
+				status='off'
+			icon=__customimages__[myitem[u'TypeImg']][myitem[u'CustomImage']]+"-"+status+".png"
+		else:
+			icon=myitem[u'TypeImg'].lower()+".png"
+		
+		item[u'Icon']=icon
+		
+		# Setting the property "type", used to know how the programm will interact with it.
+		if myitem[u'Type'] in ['Lighting 2','Lighting 1','Lighting 4','Security']:
+			if myitem[u'TypeImg']=='dimmer':
+				mytype='dimmer'
+			elif myitem[u'TypeImg']=='blinds':
+				mytype='blinds'
+			else:
+				mytype='switchlight'
+		elif myitem[u'Type'] in ['Scene','Group']:
+			mytype='switchscene'
+		else:
+			mytype='none'
+		log(myitem[u'Name']+item[u'Icon']+myitem[u'Type'])
+
+		
+		item[u'Type'] = mytype
+		log(myitem[u'Name']+item[u'Icon']+item[u'Type'])
+
+		item[u'Idx'] = myitem[u'idx']
+		item[u'Name'] = myitem[u'Name']
+		if 'Status' in myitem:
+			item[u'Status'] = myitem[u'Status']
+		log(myitem[u'Name']+item[u'Icon']+myitem[u'Type'])
+		
+		item[u'Favorite']=myitem[u'Favorite']
+		
+		if 'Level' in myitem:
+			item[u'Level'] = myitem[u'Level']
+		
+		results.append(item)
+		
+	return results
+
 
 # This is how we interact with the dimmer
 class Domoticzpopupslider(xbmcgui.WindowDialog):
@@ -272,7 +395,7 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 
 # The big thing.
 	def populateFromDomo(self):
-		results=self.getData()			# Ask domoticz for data
+		results=transformDomoticz(getData())			# Ask domoticz for data
 		self.getControl(120).reset()	# Reset the window. Used for update
 		
 		# A title
@@ -281,71 +404,20 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 		self.getControl(120).addItem(item)
 		
 		odd=True	# Used to alernate the line colors.
-		for myitem in results[u'result']:
+		for myitem in results:
 			
-			# If the user choose to display only the favoraites, then so be it.
-			if __favonly__=="true" and  myitem[u'Favorite']==0:  
-				continue
-	
-			# Groups & Scenes lack some attributes. Let's set the missing ones.
-			if myitem[u'Type'] == 'Group' or myitem[u'Type'] == 'Scene':
-				myitem[u'Data'] = myitem[u'Status']
-				myitem[u'CustomImage'] = 10
-
 			log("Adding :"+myitem[u'Name'],xbmc.LOGDEBUG)
 
-			# Ulgy thing because Domoticz does not handle Dusk sensors like the others
-			# So I override the TypeImg.
-			if u'SwitchType' in myitem and myitem[u'SwitchType'] == "Dusk Sensor":
-				myitem[u'TypeImg']='dusk'
-
-
-			# Choosing the right icon.
-			# For 'lightbulb','blinds','contact','smoke','siren','motion','door' and 'dusk' items, i choose the customImage, suffixed with the status (on/off). 
-			if myitem[u'TypeImg']  in ['lightbulb','blinds','contact','smoke','siren','motion','door','dusk']:
-				log("CustomImage :" + str(myitem[u'CustomImage']),xbmc.LOGDEBUG)
-				mytype=__customimages__[myitem[u'TypeImg']][myitem[u'CustomImage']]+"-"+myitem[u'Status'].lower()+".png"
-			# For Temperature, I choose the one that matches the range
-			elif myitem[u'TypeImg'] == "temperature":
-				mini=int(float(myitem[u'Data'].split(',')[0].split(' ')[0])/5)*5
-				maxi=mini+5
-				mytype="temp-"+str(mini)+"-"+str(maxi)+".png"
-			# For dimmer, I choose between on and off by comparing the level with 50%.
-			# And still, we allow the use of custom images.
-			elif myitem[u'TypeImg'] == 'dimmer':
-				status="on"
-				if myitem[u'Level']<50:
-					status='off'
-				mytype=__customimages__[myitem[u'TypeImg']][myitem[u'CustomImage']]+"-"+status+".png"
-			else:
-				mytype=myitem[u'TypeImg'].lower()+".png"
-
-			# There we translate Domoticz lables using the standard functionds of xbmc
-			if myitem[u'Data'].lower() in __labels__:
-				myitem[u'Data']=__localize__(__labels__[myitem[u'Data'].lower()])
-              
-            # Adding the item, one line is grey, the next is black.  
+			# Adding the item, one line is grey, the next is black.  
 			item = xbmcgui.ListItem(label=myitem[u'Name'],label2=myitem[u'Data'])
-			item.setProperty('idx',myitem[u'idx'])
+			item.setProperty('idx',myitem[u'Idx'])
 			odd= not odd
 			if odd:
 				item.setProperty('isodd','true')
 			else:
 				item.setProperty('isodd','false')
 
-			# Setting the property "type", used to know how the programm will interact with it.
-			if myitem[u'Type'] in ['Lighting 2','Lighting 1','Lighting 4','Security']:
-				if myitem[u'TypeImg']=='dimmer':
-					item.setProperty('type','dimmer')
-				elif myitem[u'TypeImg']=='blinds':
-					item.setProperty('type','blinds')
-				else:
-					item.setProperty('type','switchlight')
-			elif myitem[u'Type'] in ['Scene','Group']:
-				item.setProperty('type','switchscene')
-			else:
-				item.setProperty('type','none')
-			
+			item.setProperty('type',myitem[u'Type'])
 			# Data will be used when we click on the item.
 			if u'Status' in myitem:
 				item.setProperty('data',myitem[u'Status'])
@@ -355,57 +427,193 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 				item.setProperty('level',str(myitem[u'Level']))
 
 			# Set the icon
-			item.setIconImage(mytype)
+			item.setIconImage(myitem[u'Icon'])
 			
 			self.getControl(120).addItem(item)
-			
 
-	def getData(self):
+ 
+ 
+class DomoticzWidgets(xbmcgui.Window):
+	def __init__(self, *args, **kwargs):
+		
+		log("Init DomoticzWidgets")
+		
+		# Widgets size
+		self.widgetwidth=350
+		self.widgetheight=60
+		
+		# Margins and screen size
+		self.xoffset = 20
+		self.yoffset = 50
+		self.h=720
+		self.w=1280
+		
+		# A few dicts
+		self.backgrounds={}
+		self.titles={}
+		self.favs={}
+		self.icons={}
+		self.idx={}
+		
+		# Setting the background
+		self.background=xbmcgui.ControlImage(0,0,self.w,self.h,filename=__images__+"speedfan-panel.png",aspectRatio=0)
+		self.addControl(self.background)
+		# And let's go !
+		self.populateFromDomo()
+		
+		
+	def CalcutateMargins(self,nbitems):
+		log("NB Items : "+str(nbitems))
+
+		# Calcutate values assuming screen will be full
+		self.nbcol=int((self.w-2*self.xoffset)/self.widgetwidth)
+		self.nbrow=int((self.h-2*self.yoffset)/self.widgetheight)
+
+		if nbitems<self.nbcol*self.nbrow:
+			# How many full rows ?
+			fullrows=int( nbitems/self.nbcol)
+			if cmp(fullrows,nbitems/self.nbcol):
+				self.nbrow=min(self.nbrow,fullrows)
+			else:
+				self.nbrow=min(self.nbrow,fullrows+1)
+	
+		self.xspace=int((self.w-self.widgetwidth*self.nbcol-2*self.xoffset)/(self.nbcol+1))
+		self.yspace=int((self.h-2*self.yoffset-self.widgetheight*self.nbrow)/(self.nbrow+1))
+
+
+# This function generates the widgets, the optionnally only refreshes one.
+	def populateFromDomo(self,idx=None):
+		
+		results=transformDomoticz(getData())			# Ask domoticz for data
 		xbmc.executebuiltin( "ActivateWindow(busydialog)" )
-        
-		url=__rooturl__+u'/json.htm?type=devices&filter=all&used=true&order=Name'
 
-		log('URL is '+url,xbmc.LOGNOTICE)
-        
-        
-		try:
-			pagehandle = urllib2.urlopen(url)
-			html = pagehandle.read()
-			pagehandle.close()
-		except urllib2.HTTPError, e:
-			log('HTTPError = ' + str(e.code) ,xbmc.LOGERROR)
-			message('HTTPError = ' + __localize__(int("30"+str(e.code))))
-			xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-			self.onAction(ACTION_BACK)
-			return ""
-		except urllib2.URLError, e:
-			log('URLError = ' + str(e.reason),xbmc.LOGERROR)
-			message('URLError = ' +  __localize__(30404))
-			xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-			self.onAction(ACTION_BACK)
-			return ""
-		except httplib.HTTPException, e:
-			log('HTTPException',xbmc.LOGERROR)
-			message('HTTPException')
-			xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-			self.onAction(ACTION_BACK)
-			return ""
-		except Exception:
-			import traceback
-			log('generic exception: ' + traceback.format_exc(),xbmc.LOGERROR)
-			message('generic exception: ' + traceback.format_exc())
-			xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-			self.onAction(ACTION_BACK)
-			return ""
+		self.items={}
+		i=1
+		mycol=1
+		myrow=1
+		self.CalcutateMargins(len(results))
+		
+		for myitem in results:
+			self.items[myitem[u'Type']+"-"+str(myitem[u'Idx'])]=myitem
+			if i<=self.nbcol*self.nbrow+5:
+				# Choose between only one to refresh or a full.
+				if idx==None or idx==myitem[u'Type']+"-"+str(myitem[u'Idx']):
+					self.addwidget(mycol,myrow,myitem[u'Name'],myitem[u'Type']+"-"+str(myitem[u'Idx']),myitem[u'Favorite'],myitem[u'Icon'],i,myitem[u'Data'])
+				mycol=mycol+1
+				if mycol==self.nbcol+1:
+					mycol=1
+					myrow=myrow+1
+			i=i+1
+		# Keys navigation
+		i=1
+		for myitem in results:
+			self.backgrounds[i].setNavigation(self.backgrounds[self.navigation(i,"up")],self.backgrounds[self.navigation(i,"down")],self.backgrounds[self.navigation(i,"left")],self.backgrounds[self.navigation(i,"right")])
+			i=i+1
+		xbmc.executebuiltin( "Dialog.Close(busydialog)" )	
+		self.focus(1)
+		
 
+# Maybe this function is no longer useful.
+	def focus(self,focusid):
+		self.setFocus(self.backgrounds[focusid])
+	
+	# When the user clicks on something
+	def Click(self,control):
+		
+		idx=self.idx[control]
+		item=self.items[idx]
+		log("TYpe"+item[u'Name']+":"+item[u'Type'])
+		if item[u'Type'] == 'switchscene' or item[u'Type'] == 'switchlight':
+			sendcmd(item[u'Idx'],item['Type'],__opposite_status__[item['Status']],0)
+			self.populateFromDomo(self.idx[control])
+		elif item[u'Type']  == 'blinds':
+			args={'title':item[u'Name'], 'idx':item[u'Idx']}
+			mydisplay = Domoticzpopupblinds(args)
+			mydisplay.doModal()
+			del mydisplay
+			self.populateFromDomo(self.idx[control])
+		elif item[u'Type'] == "dimmer":
+			args={'title':item[u'Name'], 'idx':item[u'Idx'],'level':item[u'Level']}
+			mydisplay = Domoticzpopupslider(args)
+			mydisplay.doModal()
+			del mydisplay
+			self.populateFromDomo(self.idx[control])
+
+# Define wich item we should go to
+	def navigation(self,number,direction):
+		if direction=="up":
+			number=number-self.nbcol
+		elif direction=="down":
+			number=number+self.nbcol
+		elif direction=="right":
+			number=number+1
+		elif direction=="left":
+			number=number-1
+		
+		number=min(number,len(self.items))
+		number=max(number,1)
+		
+		return number
+		
+
+# Creates or recreates a widget
+	def addwidget(self,col,row,title,idx,fav,icon,focusid, data):
+		log("Adding Widget" +" - " +title+" - "+str(idx))
+		
+		if focusid in self.backgrounds:
+			self.removeControl(self.backgrounds[focusid])
+			self.removeControl(self.titles[focusid])
+			self.removeControl(self.favs[focusid])
+		if focusid in self.idx:
+			self.removeControl(self.idx[focusid])
 			
+			
+		x=(col-1)*(self.widgetwidth+self.xspace)+self.xspace+self.xoffset
+		y=(row-1)*(self.widgetheight+self.yspace)+self.yspace+self.yoffset
+		#~ log(str("W"+str(self.widgetwidth)))
+		#~ log(str("H"+str(self.widgetheight)))
+		
+		self.backgrounds[focusid]=xbmcgui.ControlButton(x,y,self.widgetwidth,self.widgetheight,label='',noFocusTexture=__images__+"domoticz-panel.png")#,aspectRatio=0)
+		self.idx[self.backgrounds[focusid].getId()]=idx
+		#~ log(self.backgrounds[focusid].getId())
+		self.titles[focusid]=xbmcgui.ControlLabel(x+60,y+5,self.widgetwidth-70,50,label=title+"\n"+data)
+		if fav>0:
+			self.favs[focusid]=xbmcgui.ControlImage(x+self.widgetwidth-35,y+15,16,16,filename=__images__+"favorite.png")
+		else:
+			self.favs[focusid]=xbmcgui.ControlImage(x+self.widgetwidth-35,y+15,16,16,filename=__images__+"nofavorite.png")
+			
+		self.icons[focusid]=xbmcgui.ControlImage(x+10,y+5,48,48,filename=__images__+icon)
+		
+		self.addControl(self.backgrounds[focusid])
+		self.addControl(self.titles[focusid])
+		self.addControl(self.favs[focusid])
+		self.addControl(self.icons[focusid])
+		
+		self.idx[self.backgrounds[focusid].getId()]=idx
+		#~ log(self.backgrounds[focusid].getId())
+		
+# Closes the windows.
+	def onAction(self, action):
+		#~ captures user input and acts as needed
+		#~ log('running onAction from DomoticzWidgets class', xbmc.LOGNOTICE)
+		if(action == ACTION_PREVIOUS_MENU or action == ACTION_BACK):
+			#if the user hits back or exit, close the window
+			log('user initiated previous menu or back', xbmc.LOGNOTICE)
+			#tell the window to close
+			log('tell the window to close', xbmc.LOGNOTICE)
+			self.close()
+		elif action.getId() in [100,7,12]:
+			self.Click(self.getFocusId())
 
-		xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-		return simplejson.loads(html)
  
- 
-
-
-w = DomoticzWindow("domoticz.xml", __addonpath__, "Default")
-w.doModal()
-del w
+if __view__ == VIEW_LIST:
+	w = DomoticzWindow("domoticz.xml", __addonpath__, "Default")
+	w.doModal()
+	del w
+elif __view__ == VIEW_WIDGET:
+	w = DomoticzWidgets()
+	w.doModal()
+	del w
+else:
+	log("Wait ? What !?")
+	

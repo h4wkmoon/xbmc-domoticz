@@ -1,0 +1,9 @@
+<fonts><font>
+     <name>font5</name>
+     <filename>arial.ttf</name>
+     <size>5</size>
+     <style>uppercase lowercase bold</style>
+     <aspect>0.75</aspect>
+     <linespacing>1.0</linespacing>
+  </font>
+</fonts>

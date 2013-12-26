@@ -9,6 +9,7 @@
     <string id="30029">Password</string>
     <string id="30030">Display Favorites only</string>
     <string id="30031">Debug</string>
+    <string id="30032">View</string>
 
     <string id="30040">On</string>
     <string id="30041">Off</string>
@@ -17,7 +18,11 @@
     <string id="30044">Panic</string>
     <string id="30045">Normal</string>
     
+    <string id="30060">List</string>
+    <string id="30061">Widget</string>
+    
     <string id="30403">Wrong user/password</string>
     <string id="30404">Not found. URL Error</string>
-    
+        
+
 </strings>
