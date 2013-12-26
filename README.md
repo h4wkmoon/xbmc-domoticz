@@ -14,6 +14,7 @@ What works :
 TODO : 
 * Internalization
 * Improve (add?;) error management
+* Redesign the whole addon without using XML.
 
 Installation : 
 * cd /tmp
