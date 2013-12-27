@@ -1,4 +1,7 @@
 import xbmc, xbmcgui,xbmcaddon
+from threading import Thread
+import time
+import datetime
 
 import urllib2
 if sys.version_info < (2, 7):
@@ -29,6 +32,8 @@ while __rooturl__=='':
 	__password__=__addon__.getSetting('password')
 	__rooturl__=__addon__.getSetting('url')
 	__favonly__=__addon__.getSetting('favonly')
+
+__windowopen__=None
 
 VIEW_LIST=0
 VIEW_WIDGET=1
@@ -237,6 +242,30 @@ def transformDomoticz(json):
 		
 	return results
 
+# Almost completely copied from speedfan.
+def updateWindow(name, w):
+    #this is the worker thread that updates the window information every w seconds
+    #this strange looping exists because I didn't want to sleep the thread for very long
+    #as time.sleep() keeps user input from being acted upon
+    log('running the worker thread from inside the def',xbmc.LOGNOTICE);
+    while __windowopen__ and (not xbmc.abortRequested):
+        #start counting up to the delay set in the preference and sleep for one second
+        log('start counting the delay set in the preference',xbmc.LOGNOTICE);
+        for i in range(int(__addon__.getSetting('update_delay'))):
+            #as long as the window is open, keep sleeping
+            if __windowopen__:
+                log('window is still open, sleep 1 second',xbmc.LOGNOTICE);
+                time.sleep(1)
+                #~ xbmc.sleep(1000)
+            #otherwise drop out of the loop so we can exit the thread
+            else:
+                break
+        #as long as the window is open grab new data and refresh the window
+        if __windowopen__:
+            log('window is still open, updating the window with new data',xbmc.LOGNOTICE);
+            w.populateFromDomo()
+
+
 
 # This is how we interact with the dimmer
 class Domoticzpopupslider(xbmcgui.WindowDialog):
@@ -357,8 +386,10 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 	def onInit(self):
 		#tell the object to go read the log file, parse it, and put it into listitems for the XML
 		log('running onInit from DomoticzWindow class', xbmc.LOGNOTICE)
+		global __windowopen__
+		__windowopen__=True
 		self.populateFromDomo()
-        
+	
 	
      # When we click on an item, if it's a switch, a scene or a group, we switch it, 
      # if it's a dimmer, let's make the popup appear
@@ -389,6 +420,10 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 			#if the user hits back or exit, close the window
 			log('user initiated previous menu or back', xbmc.LOGNOTICE)
 			#tell the window to close
+			global __windowopen__
+
+			__windowopen__=False
+
 			log('tell the window to close', xbmc.LOGNOTICE)
 			self.close()
 
@@ -437,7 +472,10 @@ class DomoticzWidgets(xbmcgui.Window):
 	def __init__(self, *args, **kwargs):
 		
 		log("Init DomoticzWidgets")
-		
+		global __windowopen__
+
+		__windowopen__=True
+
 		# Widgets size
 		self.widgetwidth=350
 		self.widgetheight=60
@@ -560,39 +598,36 @@ class DomoticzWidgets(xbmcgui.Window):
 	def addwidget(self,col,row,title,idx,fav,icon,focusid, data):
 		log("Adding Widget" +" - " +title+" - "+str(idx))
 		
+		# Does the object already exist ?
+		# If it does, let's just update it, if not, let's create it completely.
 		if focusid in self.backgrounds:
-			self.removeControl(self.backgrounds[focusid])
-			self.removeControl(self.titles[focusid])
-			self.removeControl(self.favs[focusid])
-		if focusid in self.idx:
-			self.removeControl(self.idx[focusid])
-			
-			
-		x=(col-1)*(self.widgetwidth+self.xspace)+self.xspace+self.xoffset
-		y=(row-1)*(self.widgetheight+self.yspace)+self.yspace+self.yoffset
-		#~ log(str("W"+str(self.widgetwidth)))
-		#~ log(str("H"+str(self.widgetheight)))
-		
-		self.backgrounds[focusid]=xbmcgui.ControlButton(x,y,self.widgetwidth,self.widgetheight,label='',noFocusTexture=__images__+"domoticz-panel.png")#,aspectRatio=0)
-		self.idx[self.backgrounds[focusid].getId()]=idx
-		#~ log(self.backgrounds[focusid].getId())
-		self.titles[focusid]=xbmcgui.ControlLabel(x+60,y+5,self.widgetwidth-70,50,label=title+"\n"+data)
-		if fav>0:
-			self.favs[focusid]=xbmcgui.ControlImage(x+self.widgetwidth-35,y+15,16,16,filename=__images__+"favorite.png")
+			#~ log(title+"\n"+data)
+			self.titles[focusid].setLabel(title+"\n"+data)
+			self.icons[focusid].setImage(__images__+icon)
 		else:
-			self.favs[focusid]=xbmcgui.ControlImage(x+self.widgetwidth-35,y+15,16,16,filename=__images__+"nofavorite.png")
+			x=(col-1)*(self.widgetwidth+self.xspace)+self.xspace+self.xoffset
+			y=(row-1)*(self.widgetheight+self.yspace)+self.yspace+self.yoffset
+			#~ log(str("W"+str(self.widgetwidth)))
+			#~ log(str("H"+str(self.widgetheight)))
+			self.backgrounds[focusid]=xbmcgui.ControlButton(x,y,self.widgetwidth,self.widgetheight,label='',noFocusTexture=__images__+"domoticz-panel.png")#,aspectRatio=0)
+			self.idx[self.backgrounds[focusid].getId()]=idx
+			#~ log(self.backgrounds[focusid].getId())
+			self.titles[focusid]=xbmcgui.ControlLabel(x+60,y+5,self.widgetwidth-70,50,label=title+"\n"+data)
+			if fav>0:
+				self.favs[focusid]=xbmcgui.ControlImage(x+self.widgetwidth-35,y+15,16,16,filename=__images__+"favorite.png")
+			else:
+				self.favs[focusid]=xbmcgui.ControlImage(x+self.widgetwidth-35,y+15,16,16,filename=__images__+"nofavorite.png")
+				
+			self.icons[focusid]=xbmcgui.ControlImage(x+10,y+5,48,48,filename=__images__+icon)
 			
-		self.icons[focusid]=xbmcgui.ControlImage(x+10,y+5,48,48,filename=__images__+icon)
-		
-		self.addControl(self.backgrounds[focusid])
-		self.addControl(self.titles[focusid])
-		self.addControl(self.favs[focusid])
-		self.addControl(self.icons[focusid])
-		
-		self.idx[self.backgrounds[focusid].getId()]=idx
+			self.addControl(self.backgrounds[focusid])
+			self.addControl(self.titles[focusid])
+			self.addControl(self.favs[focusid])
+			self.addControl(self.icons[focusid])
+				
+			self.idx[self.backgrounds[focusid].getId()]=idx
 		#~ log(self.backgrounds[focusid].getId())
 		
-# Closes the windows.
 	def onAction(self, action):
 		#~ captures user input and acts as needed
 		#~ log('running onAction from DomoticzWidgets class', xbmc.LOGNOTICE)
@@ -601,19 +636,41 @@ class DomoticzWidgets(xbmcgui.Window):
 			log('user initiated previous menu or back', xbmc.LOGNOTICE)
 			#tell the window to close
 			log('tell the window to close', xbmc.LOGNOTICE)
+			global __windowopen__
+			__windowopen__=False
 			self.close()
 		elif action.getId() in [100,7,12]:
 			self.Click(self.getFocusId())
 
- 
-if __view__ == VIEW_LIST:
-	w = DomoticzWindow("domoticz.xml", __addonpath__, "Default")
-	w.doModal()
-	del w
-elif __view__ == VIEW_WIDGET:
-	w = DomoticzWidgets()
-	w.doModal()
-	del w
+
+#run the script
+if ( xbmcgui.Window(10000).getProperty("domoticz.running") == "true" ):
+    log('script already running, aborting subsequent run attempts', xbmc.LOGNOTICE)
 else:
-	log("Wait ? What !?")
-	
+	#~ xbmcgui.Window(10000).setProperty( "domoticz.running",  "true" )
+	if __view__ == VIEW_LIST:
+		w = DomoticzWindow("domoticz.xml", __addonpath__, "Default")
+		if __addon__.getSetting('refresh')=='true':
+			t1 = Thread(target=updateWindow,args=("thread 1",w))
+			t1.setDaemon(True)
+			log('worker thread created. Attempting to start worker thread', xbmc.LOGNOTICE)
+			t1.start()
+		w.doModal()
+		if __addon__.getSetting('refresh')=='true':	
+			del t1
+		del w
+	elif __view__ == VIEW_WIDGET:
+		w = DomoticzWidgets()
+		if __addon__.getSetting('refresh')=='true':
+			t1 = Thread(target=updateWindow,args=("thread 1",w))
+			t1.setDaemon(True)
+			log('worker thread created. Attempting to start worker thread', xbmc.LOGNOTICE)
+			t1.start()
+		w.doModal()
+		if __addon__.getSetting('refresh')=='true':	
+			del t1
+		del w
+	else:
+		log("Wait ? What !?")
+	xbmcgui.Window(10000).setProperty( "domoticz.running",  "false" )
+

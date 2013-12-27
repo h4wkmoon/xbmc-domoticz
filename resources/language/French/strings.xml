@@ -10,6 +10,9 @@
     <string id="30030">Afficher les favoris seulement</string>
     <string id="30031">Debug</string>
     <string id="30032">Vue</string>
+    <string id="30033">Rafraichissement auto</string>
+    <string id="30034">Délai de Rafraichissement (s)</string>
+  
     
     <string id="30040">Eteint</string>
     <string id="30041">Allumé</string>

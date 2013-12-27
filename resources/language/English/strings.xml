@@ -10,6 +10,9 @@
     <string id="30030">Display Favorites only</string>
     <string id="30031">Debug</string>
     <string id="30032">View</string>
+    <string id="30033">Auto-Refresh</string>
+    <string id="30034">Refresh delay (s)</string>
+
 
     <string id="30040">On</string>
     <string id="30041">Off</string>
