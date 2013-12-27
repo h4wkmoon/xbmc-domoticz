@@ -3,18 +3,20 @@ xbmc-domoticz
 
 A XBMC addon for domoticz
 
-What works : 
+Features : 
 * Settings
-* Log into domoticz
-* Collect devices, values, status
-* Display them
-* Action switches.
+* Basic authentification from Domoticz supported and optional
+* Display devices as a list or as widgets. Screen can only contain 30 widgets. List has no limit.
+* Interact with swtiches, scenes, groupes, dimmers, blinds, smoke detector (not tested yet)
+* Display everything or only favorites
+* Optionnal Auto-refresh
  
 
 TODO : 
-* Internalization
+* Internalization. Only supported for now : English, Dutch and French.
+* Internalization. Move from string.xml to .po files.
 * Improve (add?;) error management
-* Redesign the whole addon without using XML.
+* Redesign the list mode to avoid XML
 
 Installation : 
 * cd /tmp
