@@ -65,8 +65,10 @@ ACTION_PREVIOUS_MENU = 10
 ACTION_BACK = 92
 ACTION_MOVE_LEFT=1
 ACTION_MOVE_RIGHT=2
-ACTION_SELECT_ITEM=7
+ACTION_SELECT_ITEM=[100,7,12]
 ACTION_ENTER=135
+ACTION_CONTEXT_MENU = [ 117, 101 ]
+
 
 # Dict used for internalization
 # The keys are Domoticz status, the values are lablels form the international string.xml files.
@@ -106,10 +108,18 @@ __customimages__ = { 'lightbulb': ['lightbulb','wallsocket','tv','harddisk','pri
 # switches
 # dimmer
 # scenes & groups
-def sendcmd(switchid,itemtype,cmd,level=0):
-		log("Sending "+cmd+" to Switch "+str(switchid), xbmc.LOGNOTICE)
-		thisurl=__rooturl__+"/json.htm?type=command&param="+itemtype+"&idx="+str(switchid)+"&switchcmd="+cmd+"&level="+str(level)
-		log ("URL is "+thisurl , xbmc.LOGDEBUG)
+def sendcmd(args):
+		opt=""
+		for val in args:
+			if opt!="":
+				opt=opt+"&"
+			opt=opt+val+"="+args[val]
+		#http://www.bbrose.net/domoticz//json.htm?cmd=On&type=command&param=switchlight&idx=22
+
+		#~ log("Sending "+cmd+" to Switch "+str(switchid), xbmc.LOGNOTICE)
+		#~ thisurl=__rooturl__+"/json.htm?type=command&param="+itemtype+"&idx="+str(switchid)+"&switchcmd="+cmd+"&level="+str(level)
+		thisurl=__rooturl__+"/json.htm?"+opt
+		log ("URL is "+thisurl , xbmc.LOGNOTICE)
 		xbmc.executebuiltin( "ActivateWindow(busydialog)" )
 		try:
 			pagehandle = urllib2.urlopen(thisurl)
@@ -280,7 +290,7 @@ class Domoticzpopupslider(xbmcgui.WindowDialog):
 		self.level=args[0]['level']
 		self.idx=args[0]['idx']
 		log('running __init__ from Domoticzpopupslider class', xbmc.LOGNOTICE)
-		self.fond=xbmcgui.ControlImage(self.x,self.y,self.width,self.height,"speedfan-panel.png",2)
+		self.fond=xbmcgui.ControlImage(self.x,self.y,self.width,self.height,__images__+"speedfan-panel.png",2)
 		self.slider = xbmcgui.ControlSlider(self.x+int((self.width-9*self.width/10)/2),self.y+int((self.height-10)/2),int(9*self.width/10),10)  #,texturefocus=os.path.join(__addonpath__,'resources','skins','Default','media','slider-images-handle.png'),texture=os.path.join(__addonpath__,'resources','skins','Default','media','slider-images-handle.png'))
 		self.title= xbmcgui.ControlLabel(self.x+int((self.width-9*self.width/10)/2),self.y+10,int(9*self.width/10),10,self.title)
 		#~ log(self.title)
@@ -307,10 +317,81 @@ class Domoticzpopupslider(xbmcgui.WindowDialog):
 			log('user initiated previous menu or back', xbmc.LOGNOTICE)
 			#tell the window to close
 			log('tell the window to close', xbmc.LOGNOTICE)
-			sendcmd(self.idx,'switchlight','Set%20Level',int(16*self.slider.getPercent()/100))
+			myargs={'idx':str(self.idx),
+					'type':'command',
+					'param':'switchlight',
+					'switchcmd':'Set%20Level',
+					'level':str(int(16*self.slider.getPercent()/100))
+					}
+			sendcmd(myargs)
 			self.close()
 			
 
+class DomoticzContext(xbmcgui.WindowDialog):
+	width=500
+	height=200
+	x=100
+	y=100
+	line_height=50
+	
+	def __init__(self, *args, **kwargs):
+		#and define it as self
+		self.idx=args[0]['idx']
+		self.fav=args[0]['fav']
+		self.title=args[0]['title']
+		self.itemtype=args[0]['type']
+		self.fond=xbmcgui.ControlImage(self.x,self.y,self.width,self.height,__images__+"speedfan-panel.png")
+		self.title= xbmcgui.ControlLabel(self.x+int((self.width-9*self.width/10)/2),self.y+10,int(9*self.width/10),10,self.title)
+		if self.fav>0:
+			text=__localize__(30071)
+		else:
+			text=__localize__(30070)
+		self.setfav=xbmcgui.ControlButton(self.x+int((self.width-9*self.width/10)/2),
+												self.y+10+self.line_height,
+												int(9*self.width/10),
+												self.line_height,
+												label=text)
+		
+		log(text)
+
+		self.addControl(self.fond)
+		self.addControl(self.title)
+		self.addControl(self.setfav)
+		self.actions={}
+		self.actions[self.setfav.getId()]='self.dosetfav()'
+		
+	def dosetfav(self):
+		if self.itemtype=='switchscene':
+			favcmd='makescenefavorite'
+		else:
+			favcmd='makefavorite'
+		if self.fav>0:
+			isfav="0"
+		else:
+			isfav="1"
+		myargs={'idx':self.idx,
+					'type':'command',
+					'param':favcmd,
+					'isfavorite':isfav
+					}
+		sendcmd(myargs)
+		self.close()
+		
+	def Click(self,control):
+		eval(self.actions[control])
+
+	def onAction(self, action):
+		log('running onAction from DomoticzContext class. Action:'+str(action.getId()), xbmc.LOGNOTICE)
+		#~ captures user input and acts as needed
+		if(action == ACTION_PREVIOUS_MENU or action == ACTION_BACK):
+			#if the user hits back or exit, close the window
+			log('user initiated previous menu or back', xbmc.LOGNOTICE)
+			#tell the window to close
+			log('tell the  Domoticzpopupblinds window to close', xbmc.LOGNOTICE)
+			self.close()
+		elif action.getId() in ACTION_SELECT_ITEM:
+			self.Click(self.getFocusId())
+			
 class Domoticzpopupblinds(xbmcgui.WindowDialog):
 	width=500
 	height=200
@@ -322,7 +403,7 @@ class Domoticzpopupblinds(xbmcgui.WindowDialog):
 		self.title=args[0]['title']
 		self.idx=args[0]['idx']
 		log('running __init__ from Domoticzpopupblinds class', xbmc.LOGNOTICE)
-		self.fond=xbmcgui.ControlImage(self.x,self.y,self.width,self.height,"speedfan-panel.png",2)
+		self.fond=xbmcgui.ControlImage(self.x,self.y,self.width,self.height,__images__+"speedfan-panel.png",2)
 		self.on=xbmcgui.ControlButton(self.x+int(self.width/3),self.y+self.height-100,48,48,focusTexture=__images__+"blinds-open.png",noFocusTexture=__images__+"blinds-open-nofocus.png",label="On")
 		self.off=xbmcgui.ControlButton(self.x+int(2*self.width/3),self.y+self.height-100,48,48,focusTexture=__images__+"blinds-closed.png",noFocusTexture=__images__+"blinds-closed-nofocus.png",label="Off")
 		self.title= xbmcgui.ControlLabel(self.x+int((self.width-9*self.width/10)/2),self.y+10,int(9*self.width/10),10,self.title)
@@ -335,6 +416,9 @@ class Domoticzpopupblinds(xbmcgui.WindowDialog):
 		self.on.setEnabled(True)
 		self.off.setEnabled(True)
 		
+	def onInit(self):
+		#tell the object to go read the log file, parse it, and put it into listitems for the XML
+		log('running inInit from Domoticzpopupblinds class', xbmc.LOGDEBUG)
 		
 	def onInit(self):
 		#tell the object to go read the log file, parse it, and put it into listitems for the XML
@@ -345,11 +429,20 @@ class Domoticzpopupblinds(xbmcgui.WindowDialog):
 		log("Click blinds"+str(control), xbmc.LOGNOTICE)
 		if control==self.on.getId():
 			log("ON", xbmc.LOGNOTICE)
-			sendcmd(self.idx,"switchlight","On")
+			myargs={'idx':str(self.idx),
+					'type':'command',
+					'param':'switchlight',
+					'switchcmd':'On'
+					}
+			sendcmd(myargs)
 		elif control==self.off.getId():
 			log("OFF", xbmc.LOGNOTICE)
-			sendcmd(self.idx,"switchlight","Off")
-
+			myargs={'idx':str(self.idx),
+					'type':'command',
+					'param':'switchlight',
+					'switchcmd':'Off'
+					}
+			sendcmd(myargs)
 
 	def onAction(self, action):
 		log('running onAction from Domoticzpopupblinds class. Action:'+str(action.getId()), xbmc.LOGNOTICE)
@@ -359,16 +452,14 @@ class Domoticzpopupblinds(xbmcgui.WindowDialog):
 			log('user initiated previous menu or back', xbmc.LOGNOTICE)
 			#tell the window to close
 			log('tell the  Domoticzpopupblinds window to close', xbmc.LOGNOTICE)
-			#sendcmd(self.idx,'switchlight','Set%20Level',int(16*self.slider.getPercent()/100))
 			self.close()
 		elif action == ACTION_MOVE_LEFT:
 			self.setFocus(self.on)
 		elif action == ACTION_MOVE_RIGHT:
 			self.setFocus(self.off)
-		elif action.getId() in [100,7,12]:
+		elif action.getId() in ACTION_SELECT_ITEM:
 			self.onClick(self.getFocusId())
 			
-
 
 
 
@@ -398,7 +489,12 @@ class DomoticzWindow(xbmcgui.WindowXMLDialog):
 		item = self.getControl(control).getSelectedItem()
 		log("Click  "+item.getProperty('isswitch'),xbmc.LOGDEBUG)
 		if item.getProperty('type') == 'switchscene' or item.getProperty('type') == 'switchlight':
-			sendcmd(int(item.getProperty('idx')),item.getProperty('type'),__opposite_status__[item.getProperty('data')],0)
+			myargs={'idx':str(int(item.getProperty('idx'))),
+					'type':'command',
+					'param':item.getProperty('type'),
+					'switchcmd':__opposite_status__[item.getProperty('data')]
+					}
+			sendcmd(myargs)
 		elif item.getProperty('type') == 'blinds':
 			args={'title':item.getLabel(), 'idx':item.getProperty('idx')}
 			mydisplay = Domoticzpopupblinds(args)
@@ -555,6 +651,18 @@ class DomoticzWidgets(xbmcgui.Window):
 	def focus(self,focusid):
 		self.setFocus(self.backgrounds[focusid])
 	
+	def RightClick(self,control):
+		idx=self.idx[control]
+		item=self.items[idx]
+		args={'title':item[u'Name'], 'idx':item[u'Idx'],'fav':item[u'Favorite'],'type':item[u'Type']}
+		mydisplay = DomoticzContext(args)
+		mydisplay.doModal()
+		del mydisplay
+		if __favonly__=="true":
+			self.populateFromDomo()
+		else:
+			self.populateFromDomo(idx)
+
 	# When the user clicks on something
 	def Click(self,control):
 		
@@ -562,7 +670,12 @@ class DomoticzWidgets(xbmcgui.Window):
 		item=self.items[idx]
 		log("TYpe"+item[u'Name']+":"+item[u'Type'])
 		if item[u'Type'] == 'switchscene' or item[u'Type'] == 'switchlight':
-			sendcmd(item[u'Idx'],item['Type'],__opposite_status__[item['Status']],0)
+			myargs={'idx':str(item[u'Idx']),
+				'type':'command',
+				'param':item['Type'],
+				'switchcmd':__opposite_status__[item['Status']]
+			}
+			sendcmd(myargs)
 			self.populateFromDomo(self.idx[control])
 		elif item[u'Type']  == 'blinds':
 			args={'title':item[u'Name'], 'idx':item[u'Idx']}
@@ -604,6 +717,10 @@ class DomoticzWidgets(xbmcgui.Window):
 			#~ log(title+"\n"+data)
 			self.titles[focusid].setLabel(title+"\n"+data)
 			self.icons[focusid].setImage(__images__+icon)
+			if fav>0:
+				self.favs[focusid].setImage(__images__+"favorite.png")
+			else:
+				self.favs[focusid].setImage(__images__+"nofavorite.png")
 		else:
 			x=(col-1)*(self.widgetwidth+self.xspace)+self.xspace+self.xoffset
 			y=(row-1)*(self.widgetheight+self.yspace)+self.yspace+self.yoffset
@@ -639,10 +756,15 @@ class DomoticzWidgets(xbmcgui.Window):
 			global __windowopen__
 			__windowopen__=False
 			self.close()
-		elif action.getId() in [100,7,12]:
+		elif action.getId() in ACTION_SELECT_ITEM:
 			self.Click(self.getFocusId())
-
-
+		elif action.getId() in ACTION_CONTEXT_MENU:
+			log("Right Click"+str(self.getFocusId()), xbmc.LOGNOTICE)
+			self.RightClick(self.getFocusId())
+		else:
+			log("Something "+str(action.getId()), xbmc.LOGNOTICE)
+			
+	
 #run the script
 if ( xbmcgui.Window(10000).getProperty("domoticz.running") == "true" ):
     log('script already running, aborting subsequent run attempts', xbmc.LOGNOTICE)
