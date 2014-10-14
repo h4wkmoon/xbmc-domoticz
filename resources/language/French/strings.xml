@@ -2,18 +2,18 @@
 
 <strings>
     <string id="30010">XBMC Domoticz</string>
-    <string id="30011">General</string>
-    
-    <string id="30024">Domoticz URL</string>
+    <string id="30011">Général</string>
+
+    <string id="30024">URL de Domoticz</string>
     <string id="30020">Utilisateur</string> 
     <string id="30029">Mot de passe</string>
-    <string id="30030">Afficher les favoris seulement</string>
+    <string id="30030">Afficher uniquement les favoris</string>
     <string id="30031">Debug</string>
     <string id="30032">Vue</string>
-    <string id="30033">Rafraichissement auto</string>
-    <string id="30034">Délai de Rafraichissement (s)</string>
-  
-    
+    <string id="30033">Rafraîchissement auto</string>
+    <string id="30034">Délai de rafraîchissement</string>
+
+
     <string id="30040">Eteint</string>
     <string id="30041">Allumé</string>
     <string id="30042">Ouvert</string>
@@ -23,11 +23,11 @@
     
     <string id="30060">Liste</string>
     <string id="30061">Widget</string>
-    
-    <string id="30070">Ajouter au favoris</string>
-	<string id="30071">Retirer des favoris</string>
-    
+
+    <string id="30070">Ajouter aux favoris</string>
+    <string id="30071">Retirer des favoris</string>
+
     <string id="30403">Mauvais utilisateur ou mot de passe</string>
-    <string id="30404">Erreur dans l'url</string>
+    <string id="30404">Erreur dans l'URL</string>
 
 </strings>
