@@ -205,8 +205,12 @@ def transformDomoticz(json):
 			# For Temperature, I choose the one that matches the range
 		elif myitem[u'TypeImg'] == "temperature":
 			mini=int(float(myitem[u'Data'].split(',')[0].split(' ')[0])/5)*5
-			maxi=mini+5
-			icon="temp-"+str(mini)+"-"+str(maxi)+".png"
+			if mini < 0:
+				icon="ice.png"
+			else:
+				maxi=mini+5
+				icon="temp-"+str(mini)+"-"+str(maxi)+".png"
+
 		# For dimmer, I choose between on and off by comparing the level with 50%.
 		# And still, we allow the use of custom images.
 		elif myitem[u'TypeImg'] == 'dimmer':
