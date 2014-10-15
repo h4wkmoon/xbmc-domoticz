@@ -99,7 +99,8 @@ __customimages__ = { 'lightbulb': ['lightbulb','wallsocket','tv','harddisk','pri
 						'dimmer':['dimmer'],
 						'motion': ['motion'],
 						'door': ['door'],
-						'dusk': ['dusk']
+						'dusk': ['dusk'],
+						'push': ['push']
 						}
 
 
@@ -199,7 +200,7 @@ def transformDomoticz(json):
 				item[u'TypeImg']= myitem[u'TypeImg']
 	
 		# Choose the icon
-		if myitem[u'TypeImg']  in ['lightbulb','blinds','contact','smoke','siren','motion','door','dusk']:
+		if myitem[u'TypeImg']  in ['lightbulb','blinds','contact','smoke','siren','motion','door','dusk','push']:
 			log("CustomImage :" + str(item[u'CustomImage']),xbmc.LOGDEBUG)
 			icon=__customimages__[myitem[u'TypeImg']][item[u'CustomImage']]+"-"+myitem[u'Status'].lower()+".png"
 			# For Temperature, I choose the one that matches the range
