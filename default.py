@@ -90,7 +90,7 @@ __opposite_status__ = {'Off':'On',
  
 # Ugly thing. This lists the custom image available by type of item.
 # As Domoticz has several attributes to identify the item types, this ulgy thing stays, for now.
-__customimages__ = { 'lightbulb': ['lightbulb','wallsocket','tv','harddisk','printer','amplifier','computer','fan','speaker','generic','push'],
+__customimages__ = { 'lightbulb': ['lightbulb','wallsocket','tv','harddisk','printer','amplifier','computer','fan','speaker','generic','push','water','media','alarm'],
 						'smoke': ['smoke'],
 						'contact': ['contact'],
 						'blinds': ['blinds'],
