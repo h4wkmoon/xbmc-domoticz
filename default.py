@@ -100,7 +100,8 @@ __customimages__ = { 'lightbulb': ['lightbulb','wallsocket','tv','harddisk','pri
 						'motion': ['motion'],
 						'door': ['door'],
 						'dusk': ['dusk'],
-						'push': ['push']
+						'push': ['push'],
+						'Alert': ['alert']
 						}
 
 
@@ -219,6 +220,11 @@ def transformDomoticz(json):
 			if myitem[u'Level']<50:
 				status='off'
 			icon=__customimages__[myitem[u'TypeImg']][myitem[u'CustomImage']]+"-"+status+".png"
+
+		# For alert, I choose the image based on the level (0 to 4).
+		elif myitem[u'TypeImg'] == 'Alert':
+			icon=__customimages__[myitem[u'TypeImg']][myitem[u'CustomImage']]+"-"+str(myitem[u'Level'])+".png"
+
 		else:
 			icon=myitem[u'TypeImg'].lower()+".png"
 		
