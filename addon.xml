@@ -9,10 +9,10 @@
   </extension> 
   <extension point="xbmc.addon.metadata">
     <summary lang="en">Displays the switches, sensors and other devices configured in your Domoticz server.</summary>
-    <summary lang="fr">Affiche les températues et interrupteurs de votre installation Domoticz</summary>
+    <summary lang="fr">Affiche les températures et interrupteurs de votre installation Domoticz</summary>
     <summary lang="nl">Overzicht van de schakelaars, sensoren en andere apparaten van je Domoticz server.</summary>
     <description lang="en">This addon allows to display the state of the devices you configured in your Domoticz server. You can also control your switches. </description>
-    <description lang="fr">Ce plugin permet de connaitre l'état des équipements domotiques configuré dans votre installation Domoticz, et pour ceux qui le permettent de changer leur statut.</description>
+    <description lang="fr">Ce plugin permet de connaître l'état des équipements domotiques configurés dans votre installation Domoticz, et pour ceux qui le permettent, de changer leur état.</description>
     <description lang="nl">Deze addon geeft een overzicht van al je apparaten die je hebt configureerd in je Domoticz server. Schakelaars kun je ook bedienen. </description>
     <forum>TODO</forum>
     <source>TODO</source>
