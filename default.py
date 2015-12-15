@@ -90,7 +90,7 @@ __opposite_status__ = {'Off':'On',
  
 # Ugly thing. This lists the custom image available by type of item.
 # As Domoticz has several attributes to identify the item types, this ulgy thing stays, for now.
-__customimages__ = { 'lightbulb': ['lightbulb','wallsocket','tv','harddisk','printer','amplifier','computer','fan','speaker','generic','push'],
+__customimages__ = { 'lightbulb': ['lightbulb','wallsocket','tv','harddisk','printer','amplifier','computer','fan','speaker','generic','push','water','media','alarm'],
 						'smoke': ['smoke'],
 						'contact': ['contact'],
 						'blinds': ['blinds'],
@@ -99,7 +99,9 @@ __customimages__ = { 'lightbulb': ['lightbulb','wallsocket','tv','harddisk','pri
 						'dimmer':['dimmer'],
 						'motion': ['motion'],
 						'door': ['door'],
-						'dusk': ['dusk']
+						'dusk': ['dusk'],
+						'push': ['push'],
+						'Alert': ['alert']
 						}
 
 
@@ -199,14 +201,18 @@ def transformDomoticz(json):
 				item[u'TypeImg']= myitem[u'TypeImg']
 	
 		# Choose the icon
-		if myitem[u'TypeImg']  in ['lightbulb','blinds','contact','smoke','siren','motion','door','dusk']:
+		if myitem[u'TypeImg']  in ['lightbulb','blinds','contact','smoke','siren','motion','door','dusk','push']:
 			log("CustomImage :" + str(item[u'CustomImage']),xbmc.LOGDEBUG)
 			icon=__customimages__[myitem[u'TypeImg']][item[u'CustomImage']]+"-"+myitem[u'Status'].lower()+".png"
 			# For Temperature, I choose the one that matches the range
 		elif myitem[u'TypeImg'] == "temperature":
 			mini=int(float(myitem[u'Data'].split(',')[0].split(' ')[0])/5)*5
-			maxi=mini+5
-			icon="temp-"+str(mini)+"-"+str(maxi)+".png"
+			if mini < 0:
+				icon="ice.png"
+			else:
+				maxi=mini+5
+				icon="temp-"+str(mini)+"-"+str(maxi)+".png"
+
 		# For dimmer, I choose between on and off by comparing the level with 50%.
 		# And still, we allow the use of custom images.
 		elif myitem[u'TypeImg'] == 'dimmer':
@@ -214,6 +220,11 @@ def transformDomoticz(json):
 			if myitem[u'Level']<50:
 				status='off'
 			icon=__customimages__[myitem[u'TypeImg']][myitem[u'CustomImage']]+"-"+status+".png"
+
+		# For alert, I choose the image based on the level (0 to 4).
+		elif myitem[u'TypeImg'] == 'Alert':
+			icon=__customimages__[myitem[u'TypeImg']][myitem[u'CustomImage']]+"-"+str(myitem[u'Level'])+".png"
+
 		else:
 			icon=myitem[u'TypeImg'].lower()+".png"
 		
