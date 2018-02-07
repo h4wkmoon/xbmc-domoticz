@@ -1,7 +1,9 @@
+
+
 xbmc-domoticz
 =============
 
-A XBMC addon for domoticz
+An **abandonned** XBMC addon for domoticz
 
 Features : 
 * Settings
@@ -28,3 +30,6 @@ Installation :
 
 Credits :
 * SpeedFan Information ADDON, XBMC Backup and their creators.
+
+
+Sorry, but this addon is not maintained any more.
