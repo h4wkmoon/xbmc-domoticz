@@ -3,7 +3,7 @@
 xbmc-domoticz
 =============
 
-An **abandonned** XBMC addon for domoticz
+An **abandoned** XBMC addon for domoticz
 
 Features : 
 * Settings
